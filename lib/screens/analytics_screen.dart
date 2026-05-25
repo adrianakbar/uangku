@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/text_style_helper.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -97,7 +98,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         children: [
           Text(
             'Analisis Arus Kas',
-            style: TextStyle(
+            style: plusJakartaStyle(
               color: textColor,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -131,7 +132,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(_formatRupiah(_income), style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text(_formatRupiah(_income), style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -146,7 +147,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(_formatRupiah(_expense), style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text(_formatRupiah(_expense), style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -309,7 +310,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               ],
                             ),
                           ),
-                          Text(_formatRupiah(amount), style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text(_formatRupiah(amount), style: spaceGroteskStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 12),

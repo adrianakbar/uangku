@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/text_style_helper.dart';
 import '../main.dart'; // Akses themeNotifier global
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -101,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 'Arus Kas Pekan Ini',
-                style: GoogleFonts.poppins(
+                style: plusJakartaStyle(
                   color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -125,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 'Transaksi Terbaru',
-                style: GoogleFonts.poppins(
+                style: plusJakartaStyle(
                   color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -211,7 +212,7 @@ class _DashboardHeader extends StatelessWidget {
                   children: [
                     Text(
                       'Halo, $displayName',
-                      style: GoogleFonts.poppins(
+                      style: plusJakartaStyle(
                         color: textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -368,7 +369,7 @@ class _BalanceCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             _formatRupiah(balance),
-            style: GoogleFonts.poppins(
+            style: spaceGroteskStyle(
               color: textColor,
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -411,7 +412,7 @@ class _BalanceCard extends StatelessWidget {
                           ),
                           Text(
                             _formatRupiah(income),
-                            style: GoogleFonts.poppins(
+                            style: spaceGroteskStyle(
                               color: textColor,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -463,7 +464,7 @@ class _BalanceCard extends StatelessWidget {
                           ),
                           Text(
                             _formatRupiah(expense),
-                            style: GoogleFonts.poppins(
+                            style: spaceGroteskStyle(
                               color: textColor,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,

@@ -38,7 +38,7 @@ class UangkuApp extends StatelessWidget {
         return null;
       }
     } catch (_) {}
-    return GoogleFonts.outfit().fontFamily;
+    return GoogleFonts.inter().fontFamily;
   }
 
   @override

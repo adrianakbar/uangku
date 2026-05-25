@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/text_style_helper.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -239,7 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // 1. Header Halaman
           Text(
             'Riwayat Keuangan',
-            style: TextStyle(
+            style: plusJakartaStyle(
               color: textColor,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -279,8 +280,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _formatRupiah(currentIncome),
-                        style: const TextStyle(
-                          color: Color(0xFF00E676),
+                        style: spaceGroteskStyle(
+                          color: const Color(0xFF00E676),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -315,8 +316,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _formatRupiah(currentExpense),
-                        style: const TextStyle(
-                          color: Color(0xFFFF5252),
+                        style: spaceGroteskStyle(
+                          color: const Color(0xFFFF5252),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -546,7 +547,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 children: [
                                   Text(
                                     '${isExpense ? "-" : "+"} ${_formatRupiah(amount)}',
-                                    style: TextStyle(
+                                    style: spaceGroteskStyle(
                                       color: isExpense ? const Color(0xFFFF5252) : const Color(0xFF00E676),
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
