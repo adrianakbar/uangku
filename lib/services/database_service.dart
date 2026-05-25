@@ -120,6 +120,17 @@ class DatabaseService {
     );
   }
 
+  // Update hanya kolom photo_url untuk user tertentu
+  Future<int> updateUserPhoto(String email, String? photoUrl) async {
+    final db = await database;
+    return await db.update(
+      'users',
+      {'photo_url': photoUrl},
+      where: 'LOWER(email) = ?',
+      whereArgs: [email.trim().toLowerCase()],
+    );
+  }
+
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -155,6 +166,89 @@ class DatabaseService {
       whereArgs: [email.trim().toLowerCase()],
       orderBy: 'date DESC',
     );
+  }
+
+  // Ambil transaksi dengan filter rentang tanggal
+  Future<List<Map<String, dynamic>>> getTransactionsForUserFiltered(
+    String email, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final db = await database;
+    final emailClean = email.trim().toLowerCase();
+
+    if (startDate == null && endDate == null) {
+      return getTransactionsForUser(email);
+    }
+
+    String whereClause = 'LOWER(user_email) = ?';
+    List<dynamic> args = [emailClean];
+
+    if (startDate != null) {
+      whereClause += ' AND date >= ?';
+      args.add(startDate.toIso8601String());
+    }
+    if (endDate != null) {
+      // Tambah 1 hari agar endDate inklusif
+      final inclusiveEnd = endDate.add(const Duration(days: 1));
+      whereClause += ' AND date < ?';
+      args.add(inclusiveEnd.toIso8601String());
+    }
+
+    return await db.query(
+      'transactions',
+      where: whereClause,
+      whereArgs: args,
+      orderBy: 'date DESC',
+    );
+  }
+
+  // Hitung ringkasan (saldo, pemasukan, pengeluaran) dengan filter rentang tanggal
+  Future<Map<String, double>> getSummaryForUserFiltered(
+    String email, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    if (startDate == null && endDate == null) {
+      return getSummaryForUser(email);
+    }
+
+    final db = await database;
+    final emailClean = email.trim().toLowerCase();
+
+    String dateFilter = '';
+    List<dynamic> incomeArgs = [emailClean];
+    List<dynamic> expenseArgs = [emailClean];
+
+    if (startDate != null) {
+      dateFilter += ' AND date >= ?';
+      incomeArgs.add(startDate.toIso8601String());
+      expenseArgs.add(startDate.toIso8601String());
+    }
+    if (endDate != null) {
+      final inclusiveEnd = endDate.add(const Duration(days: 1));
+      dateFilter += ' AND date < ?';
+      incomeArgs.add(inclusiveEnd.toIso8601String());
+      expenseArgs.add(inclusiveEnd.toIso8601String());
+    }
+
+    final incomeQuery = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 0$dateFilter',
+      incomeArgs,
+    );
+    final double totalIncome = (incomeQuery.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    final expenseQuery = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 1$dateFilter',
+      expenseArgs,
+    );
+    final double totalExpense = (expenseQuery.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    return {
+      'balance': totalIncome - totalExpense,
+      'income': totalIncome,
+      'expense': totalExpense,
+    };
   }
 
   Future<int> deleteTransaction(int id) async {

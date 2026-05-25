@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/database_service.dart';
@@ -18,6 +20,124 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _authService = AuthService();
+  bool _isUpdatingPhoto = false;
+
+  Future<void> _pickProfilePhoto(BuildContext context) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF151929) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.07),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Ganti Foto Profil',
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00ADB5).withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.image, color: Color(0xFF00ADB5), size: 22),
+              ),
+              title: Text(
+                'Pilih dari Galeri',
+                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.w600),
+              ),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF355DA).withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.camera, color: Color(0xFFF355DA), size: 22),
+              ),
+              title: Text(
+                'Ambil Foto',
+                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.w600),
+              ),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            if (_authService.currentUser?.photoUrl != null)
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 22),
+                ),
+                title: Text(
+                  'Hapus Foto',
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.w600),
+                ),
+                onTap: () => Navigator.pop(context, null),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    // Jika user memilih hapus foto
+    if (source == null && _authService.currentUser?.photoUrl != null) {
+      setState(() => _isUpdatingPhoto = true);
+      await _authService.updateUserPhoto(null);
+      DatabaseService.changeNotifier.value++;
+      if (mounted) setState(() => _isUpdatingPhoto = false);
+      return;
+    }
+
+    if (source == null) return;
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 512,
+    );
+
+    if (pickedFile == null) return;
+    if (!context.mounted) return;
+
+    setState(() => _isUpdatingPhoto = true);
+    await _authService.updateUserPhoto(pickedFile.path);
+    DatabaseService.changeNotifier.value++;
+    if (mounted) setState(() => _isUpdatingPhoto = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,29 +170,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Avatar
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 26,
-                    backgroundColor: const Color(0xFF0E1122),
-                    backgroundImage: user?.photoUrl != null ? NetworkImage(user!.photoUrl!) : null,
-                    child: user?.photoUrl == null
-                        ? Text(
-                            user?.displayName.substring(0, 1).toUpperCase() ?? 'U',
-                            style: const TextStyle(
-                              color: Color(0xFF00ADB5),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                // Avatar dengan tombol edit
+                GestureDetector(
+                  onTap: () => _pickProfilePhoto(context),
+                  child: Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
+                          ),
+                        ),
+                        child: _isUpdatingPhoto
+                            ? const CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Color(0xFF0E1122),
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF00ADB5),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : CircleAvatar(
+                                radius: 26,
+                                backgroundColor: const Color(0xFF0E1122),
+                                backgroundImage: _buildAvatarImage(user?.photoUrl),
+                                child: _buildAvatarChild(user),
+                              ),
+                      ),
+                      // Badge edit kamera
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
                             ),
-                          )
-                        : null,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: isDark ? const Color(0xFF0E1122) : Colors.white, width: 2),
+                          ),
+                          child: const Icon(LucideIcons.camera, color: Colors.white, size: 11),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -93,6 +237,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         user?.email ?? 'offline-mode@uangku.com',
                         style: TextStyle(color: subTextColor, fontSize: 12),
+                      ),
+                      const SizedBox(height: 6),
+                      GestureDetector(
+                        onTap: () => _pickProfilePhoto(context),
+                        child: Text(
+                          'Ubah foto profil',
+                          style: TextStyle(
+                            color: const Color(0xFF00ADB5),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -431,5 +587,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case ThemeMode.dark:
         return 'Tema saat ini: Gelap (Dark Mode)';
     }
+  }
+
+  // Helper: Menentukan sumber gambar avatar (lokal file atau network)
+  ImageProvider? _buildAvatarImage(String? photoUrl) {
+    if (photoUrl == null) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return NetworkImage(photoUrl);
+    }
+    return FileImage(File(photoUrl));
+  }
+
+  // Helper: Widget inisial huruf jika tidak ada foto
+  Widget? _buildAvatarChild(UserSession? user) {
+    if (user?.photoUrl != null) return null;
+    final letter = user?.displayName.isNotEmpty == true
+        ? user!.displayName.substring(0, 1).toUpperCase()
+        : 'U';
+    return Text(
+      letter,
+      style: const TextStyle(
+        color: Color(0xFF00ADB5),
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+    );
   }
 }

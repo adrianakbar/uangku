@@ -144,7 +144,19 @@ class AuthService {
     }
   }
 
-  // 4. Logout
+  // 5. Update Foto Profil Pengguna
+  Future<void> updateUserPhoto(String? photoUrl) async {
+    if (_currentUser == null) return;
+    await _dbService.updateUserPhoto(_currentUser!.email, photoUrl);
+    _currentUser = UserSession(
+      email: _currentUser!.email,
+      displayName: _currentUser!.displayName,
+      photoUrl: photoUrl,
+      authProvider: _currentUser!.authProvider,
+    );
+  }
+
+  // 6. Logout
   Future<void> logout() async {
     if (_currentUser?.authProvider == 'google') {
       try {

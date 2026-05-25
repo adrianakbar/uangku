@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
 import '../main.dart'; // Akses themeNotifier global
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
+
+// Enum untuk opsi filter periode
+enum _FilterPeriod { hari, minggu, bulan, tahun, rentang }
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback onAddTransactionPressed;
@@ -26,6 +29,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _expense = 0.0;
   List<Map<String, dynamic>> _transactions = [];
 
+  // State Filter
+  _FilterPeriod _selectedFilter = _FilterPeriod.bulan;
+  DateTime? _customStart;
+  DateTime? _customEnd;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +47,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  // Konversi enum filter → rentang tanggal
+  (DateTime?, DateTime?) _getDateRange() {
+    final now = DateTime.now();
+    switch (_selectedFilter) {
+      case _FilterPeriod.hari:
+        final start = DateTime(now.year, now.month, now.day);
+        return (start, now);
+      case _FilterPeriod.minggu:
+        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+        final start = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+        return (start, now);
+      case _FilterPeriod.bulan:
+        final start = DateTime(now.year, now.month, 1);
+        return (start, now);
+      case _FilterPeriod.tahun:
+        final start = DateTime(now.year, 1, 1);
+        return (start, now);
+      case _FilterPeriod.rentang:
+        return (_customStart, _customEnd);
+    }
+  }
+
   Future<void> _loadData() async {
     if (!mounted) return;
     setState(() {
@@ -50,8 +80,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Pastikan database terisi data awal demo jika baru terdaftar
     await _dbService.seedDefaultDataForUser(email);
 
-    final summary = await _dbService.getSummaryForUser(email);
-    final txs = await _dbService.getTransactionsForUser(email);
+    final (startDate, endDate) = _getDateRange();
+
+    final summary = await _dbService.getSummaryForUserFiltered(
+      email,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final txs = await _dbService.getTransactionsForUserFiltered(
+      email,
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     if (mounted) {
       setState(() {
@@ -64,11 +104,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // Buka date range picker untuk filter Rentang
+  Future<void> _pickCustomDateRange(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      initialDateRange: (_customStart != null && _customEnd != null)
+          ? DateTimeRange(start: _customStart!, end: _customEnd!)
+          : DateTimeRange(
+              start: now.subtract(const Duration(days: 30)),
+              end: now,
+            ),
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF00ADB5),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF151929),
+                    onSurface: Colors.white,
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF00ADB5),
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Color(0xFF1E293B),
+                  ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _customStart = picked.start;
+        _customEnd = picked.end;
+      });
+      await _loadData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Warna teks dinamis
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
     return SingleChildScrollView(
@@ -120,12 +203,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const _LiquidAnalyticsWave(),
           const SizedBox(height: 25),
 
-          // 4. Riwayat Transaksi Terbaru
+          // 4. Filter Pengeluaran
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Transaksi Terbaru',
+                'Riwayat Transaksi',
                 style: plusJakartaStyle(
                   color: textColor,
                   fontSize: 18,
@@ -140,7 +223,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+
+          // Filter Chip Bar
+          _FilterChipBar(
+            selectedFilter: _selectedFilter,
+            customStart: _customStart,
+            customEnd: _customEnd,
+            onFilterChanged: (filter) async {
+              setState(() {
+                _selectedFilter = filter;
+              });
+              if (filter == _FilterPeriod.rentang) {
+                await _pickCustomDateRange(context);
+              } else {
+                await _loadData();
+              }
+            },
+            onCustomRangeTap: () => _pickCustomDateRange(context),
+          ),
           const SizedBox(height: 15),
+
+          // 5. Riwayat Transaksi Terbaru
           _isLoading
               ? const Center(
                   child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
@@ -153,9 +257,139 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
+// --- WIDGET FILTER CHIP BAR ---
+class _FilterChipBar extends StatelessWidget {
+  final _FilterPeriod selectedFilter;
+  final DateTime? customStart;
+  final DateTime? customEnd;
+  final ValueChanged<_FilterPeriod> onFilterChanged;
+  final VoidCallback onCustomRangeTap;
+
+  const _FilterChipBar({
+    required this.selectedFilter,
+    required this.customStart,
+    required this.customEnd,
+    required this.onFilterChanged,
+    required this.onCustomRangeTap,
+  });
+
+  String _rangeLabel() {
+    if (customStart == null || customEnd == null) return 'Rentang';
+    final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    final s = customStart!;
+    final e = customEnd!;
+    if (s.year == e.year && s.month == e.month) {
+      return '${s.day}–${e.day} ${months[s.month - 1]}';
+    }
+    return '${s.day} ${months[s.month - 1]} – ${e.day} ${months[e.month - 1]}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final filters = [
+      (_FilterPeriod.hari, 'Hari Ini'),
+      (_FilterPeriod.minggu, 'Minggu'),
+      (_FilterPeriod.bulan, 'Bulan'),
+      (_FilterPeriod.tahun, 'Tahun'),
+      (_FilterPeriod.rentang, _rangeLabel()),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: filters.map((entry) {
+          final (filter, label) = entry;
+          final isSelected = selectedFilter == filter;
+          final isRentang = filter == _FilterPeriod.rentang;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () {
+                if (isSelected && isRentang) {
+                  onCustomRangeTap();
+                } else {
+                  onFilterChanged(filter);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          colors: [Color(0xFF00ADB5), Color(0xFF006E77)],
+                        )
+                      : null,
+                  color: isSelected
+                      ? null
+                      : (isDark ? Colors.white.withOpacity(0.07) : Colors.black.withOpacity(0.05)),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? Colors.transparent
+                        : (isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08)),
+                    width: 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF00ADB5).withOpacity(0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isRentang) ...[
+                      Icon(
+                        LucideIcons.calendar_range,
+                        size: 12,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white54 : const Color(0xFF64748B)),
+                      ),
+                      const SizedBox(width: 5),
+                    ],
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white60 : const Color(0xFF475569)),
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
 // --- WIDGET HEADER ---
 class _DashboardHeader extends StatelessWidget {
   const _DashboardHeader();
+
+  // Helper: Menentukan sumber gambar avatar
+  ImageProvider? _buildAvatarImage(String? photoUrl) {
+    if (photoUrl == null) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return NetworkImage(photoUrl);
+    }
+    return FileImage(File(photoUrl));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +405,7 @@ class _DashboardHeader extends StatelessWidget {
         ? displayName.substring(0, 1).toUpperCase()
         : 'A';
     final photoUrl = user?.photoUrl;
+    final avatarImage = _buildAvatarImage(photoUrl);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,10 +425,8 @@ class _DashboardHeader extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 22,
                   backgroundColor: const Color(0xFF0E1122),
-                  backgroundImage: photoUrl != null
-                      ? NetworkImage(photoUrl)
-                      : null,
-                  child: photoUrl == null
+                  backgroundImage: avatarImage,
+                  child: avatarImage == null
                       ? Text(
                           firstLetter,
                           style: const TextStyle(
@@ -751,7 +984,7 @@ class _RecentTransactionsList extends StatelessWidget {
               const Icon(LucideIcons.receipt, color: Colors.white24, size: 40),
               const SizedBox(height: 12),
               Text(
-                'Belum ada transaksi.',
+                'Belum ada transaksi pada periode ini.',
                 style: TextStyle(color: deepFadedTextColor, fontSize: 13),
               ),
             ],
@@ -807,8 +1040,7 @@ class _RecentTransactionsList extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow
-                          .ellipsis, // Mencegah judul panjang overflow
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     // Wrap Widget yang 100% Overflow-Proof untuk detail tanggal & sumber dana
@@ -837,8 +1069,7 @@ class _RecentTransactionsList extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
-                          overflow: TextOverflow
-                              .ellipsis, // Melindungi nama dompet panjang
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
