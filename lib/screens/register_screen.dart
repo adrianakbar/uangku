@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/text_style_helper.dart';
 import '../widgets/liquid_glass_background.dart';
 import '../widgets/glass_card.dart';
 import '../services/auth_service.dart';
@@ -118,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               Text(
                 'BUAT AKUN LOKAL',
-                style: GoogleFonts.poppins(
+                style: poppinsStyle(
                   color: textColor,
                   fontSize: 22,
                   fontWeight: FontWeight.w900,

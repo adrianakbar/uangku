@@ -1,0 +1,140 @@
+00:00 +0: loading /home/adrianakbar/Pribadi/uangku/test/widget_test.dart
+00:00 +0: App startup auth shell smoke test
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: databaseFactory not initialized
+databaseFactory is only initialized when using sqflite. When using `sqflite_common_ffi`
+You must call `databaseFactory = databaseFactoryFfi;` before using global openDatabase API
+
+When the exception was thrown, this was the stack:
+#0      databaseFactory.<anonymous closure> (package:sqflite_common/src/sqflite_database_factory.dart:32:7)
+#1      databaseFactory (package:sqflite_common/src/sqflite_database_factory.dart:36:6)
+#2      getDatabasesPath (package:sqflite_common/sqflite.dart:109:38)
+#3      DatabaseService._initDatabase (package:uangku/services/database_service.dart:21:26)
+#4      DatabaseService.database (package:uangku/services/database_service.dart:16:23)
+#5      DatabaseService.getSetting (package:uangku/services/database_service.dart:318:22)
+#6      AuthService.restoreSession (package:uangku/services/auth_service.dart:160:36)
+#7      _MainNavigationShellState._initPersistentState (package:uangku/main.dart:88:25)
+#8      _MainNavigationShellState.initState (package:uangku/main.dart:81:5)
+#9      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5950:55)
+#10     ComponentElement.mount (package:flutter/src/widgets/framework.dart:5793:5)
+...     Normal element mounting (260 frames)
+#270    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4587:20)
+#271    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7264:36)
+#272    MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7279:32)
+...     Normal element mounting (464 frames)
+#736    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4587:20)
+#737    Element.updateChild (package:flutter/src/widgets/framework.dart:4053:20)
+#738    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#739    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#740    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#741    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#742    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#743    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#744    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#745    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#746    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#747    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#748    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#749    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#750    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#751    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#752    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#753    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#754    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#755    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#756    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#757    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#758    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#759    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#760    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#761    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#762    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#763    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#764    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#765    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#766    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#767    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#768    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#769    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#770    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#771    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#772    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#773    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#774    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#775    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#776    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#777    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#778    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#779    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#780    _RawViewElement._updateChild (package:flutter/src/widgets/view.dart:481:16)
+#781    _RawViewElement.update (package:flutter/src/widgets/view.dart:568:5)
+#782    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#783    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#784    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#785    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#786    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#787    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#788    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#789    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#790    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#791    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#792    RootElement._rebuild (package:flutter/src/widgets/binding.dart:2091:16)
+#793    RootElement.update (package:flutter/src/widgets/binding.dart:2069:5)
+#794    RootElement.performRebuild (package:flutter/src/widgets/binding.dart:2083:7)
+#795    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#796    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#797    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#798    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#799    AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:2431:19)
+#800    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:509:5)
+#801    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#802    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
+#803    AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2260:9)
+#806    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#807    AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2249:27)
+#808    WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#811    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#812    WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#813    main.<anonymous closure> (file:///home/adrianakbar/Pribadi/uangku/test/widget_test.dart:15:18)
+#814    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#815    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+The test description was:
+  App startup auth shell smoke test
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: App startup auth shell smoke test [E]
+  Test failed. See exception logs above.
+  The test description was: App startup auth shell smoke test
+  
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test (but after the test had completed):
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "UANGKU": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure> (file:///home/adrianakbar/Pribadi/uangku/test/widget_test.dart:18:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+  Test failed. See exception logs above.
+  The test description was: App startup auth shell smoke test
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/adrianakbar/Pribadi/uangku/test/widget_test.dart: App startup auth shell smoke test

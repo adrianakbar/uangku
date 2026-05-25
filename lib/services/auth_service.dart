@@ -81,6 +81,7 @@ class AuthService {
         photoUrl: user['photo_url'] as String?,
         authProvider: 'local',
       );
+      await _dbService.saveSetting('logged_in_email', cleanEmail);
       return true;
     }
     return false;
@@ -115,6 +116,7 @@ class AuthService {
         photoUrl: googleUser.photoUrl,
         authProvider: 'google',
       );
+      await _dbService.saveSetting('logged_in_email', cleanEmail);
       return _currentUser;
     } catch (e) {
       // Fallback Mock Mode: Mengizinkan login Google berjalan lancar untuk demo antarmuka
@@ -137,6 +139,7 @@ class AuthService {
         photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
         authProvider: 'google',
       );
+      await _dbService.saveSetting('logged_in_email', mockEmail);
       return _currentUser;
     }
   }
@@ -149,5 +152,22 @@ class AuthService {
       } catch (_) {}
     }
     _currentUser = null;
+    await _dbService.deleteSetting('logged_in_email');
+  }
+
+  // 5. Pulihkan Sesi Login dari Database
+  Future<void> restoreSession() async {
+    final email = await _dbService.getSetting('logged_in_email');
+    if (email != null && email.isNotEmpty) {
+      final user = await _dbService.getUserByEmail(email);
+      if (user != null) {
+        _currentUser = UserSession(
+          email: email,
+          displayName: user['display_name'] as String,
+          photoUrl: user['photo_url'] as String?,
+          authProvider: user['auth_provider'] as String,
+        );
+      }
+    }
   }
 }

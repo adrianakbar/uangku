@@ -37,6 +37,29 @@ class DatabaseService {
       )
     ''');
 
+    // Migrasi otomatis jika tabel settings menggunakan kolom 'key'/'value' (reserved keywords)
+    try {
+      final columns = await db.rawQuery('PRAGMA table_info(settings)');
+      bool hasOldColumns = false;
+      for (var col in columns) {
+        if (col['name'] == 'key' || col['name'] == 'value') {
+          hasOldColumns = true;
+          break;
+        }
+      }
+      if (hasOldColumns) {
+        await db.execute('DROP TABLE settings');
+      }
+    } catch (_) {}
+
+    // Pastikan tabel settings selalu ada dengan nama kolom yang aman
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_value TEXT
+      )
+    ''');
+
     return db;
   }
 
@@ -74,6 +97,14 @@ class DatabaseService {
         amount REAL NOT NULL,
         user_email TEXT,
         PRIMARY KEY (category, user_email)
+      )
+    ''');
+
+    // 4. Buat Tabel Settings dengan nama kolom yang aman
+    await db.execute('''
+      CREATE TABLE settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_value TEXT
       )
     ''');
   }
@@ -285,5 +316,38 @@ class DatabaseService {
       result[category] = total;
     }
     return result;
+  }
+
+  // --- METHODS UNTUK PENGATURAN & SESI ---
+
+  Future<void> saveSetting(String key, String value) async {
+    final db = await database;
+    await db.insert(
+      'settings',
+      {'setting_key': key, 'setting_value': value},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<String?> getSetting(String key) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'settings',
+      where: 'setting_key = ?',
+      whereArgs: [key],
+    );
+    if (maps.isNotEmpty) {
+      return maps.first['setting_value'] as String?;
+    }
+    return null;
+  }
+
+  Future<void> deleteSetting(String key) async {
+    final db = await database;
+    await db.delete(
+      'settings',
+      where: 'setting_key = ?',
+      whereArgs: [key],
+    );
   }
 }
