@@ -31,6 +31,33 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Widget Uangku — Medium (4×2) -->
+        <receiver
+            android:name=".UangkuWidget"
+            android:exported="true"
+            android:label="Uangku (Saldo &amp; Hari Ini)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/uangku_widget_info" />
+        </receiver>
+
+        <!-- Widget Uangku — Small (2×2) -->
+        <receiver
+            android:name=".UangkuWidgetSmall"
+            android:exported="true"
+            android:label="Uangku Saldo">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/uangku_widget_small_info" />
+        </receiver>
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

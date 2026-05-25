@@ -110,10 +110,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     colors: [Color(0xFF00ADB5), Color(0xFF7000FF)],
                   ),
                 ),
-                child: const Icon(
-                  LucideIcons.user_plus,
-                  color: Colors.white,
-                  size: 28,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Image.asset(
+                    'lib/assets/images/uangku_logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

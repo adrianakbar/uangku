@@ -112,10 +112,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   ],
                 ),
-                child: const Icon(
-                  LucideIcons.wallet,
-                  color: Colors.white,
-                  size: 30,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Image.asset(
+                    'lib/assets/images/uangku_logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

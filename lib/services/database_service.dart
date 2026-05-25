@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'widget_service.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -155,6 +156,7 @@ class DatabaseService {
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
     changeNotifier.value++;
+    WidgetService().updateWidget();
     return res;
   }
 
@@ -259,6 +261,7 @@ class DatabaseService {
       whereArgs: [id],
     );
     changeNotifier.value++;
+    WidgetService().updateWidget();
     return res;
   }
 

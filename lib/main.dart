@@ -17,6 +17,7 @@ import 'screens/analytics_screen.dart';
 import 'screens/history_screen.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
+import 'services/widget_service.dart';
 
 // Notifikasi Nilai Global Reaktif
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
@@ -26,6 +27,7 @@ final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  await WidgetService.init();
   runApp(const UangkuApp());
 }
 
@@ -101,7 +103,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     
     // 1. Pulihkan sesi login dari SQLite
     await AuthService().restoreSession();
-    
+
     // 2. Pulihkan setelan biometrik
     final bioEnabled = await db.getSetting('biometric_enabled');
     biometricEnabledNotifier.value = bioEnabled == 'true';
@@ -120,6 +122,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       themeNotifier.value = ThemeMode.system;
     }
     
+    // 5. Push data terbaru ke widget Android (jika sudah login)
+    WidgetService().updateWidget();
+
     if (mounted) {
       setState(() {
         _isUnlocked = !biometricEnabledNotifier.value;
@@ -140,6 +145,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   void _handleLogout() async {
     await AuthService().logout();
+    await WidgetService().clearWidget();
     setState(() {
       _currentIndex = 0;
       _isUnlocked = false;
@@ -165,6 +171,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     if (!authService.isLoggedIn) {
       return LoginScreen(
         onLoginSuccess: () {
+          WidgetService().updateWidget();
           setState(() {
             // Memicu pengecekan biometrik sesudah login sukses jika diaktifkan sebelumnya
             _isUnlocked = !biometricEnabledNotifier.value;

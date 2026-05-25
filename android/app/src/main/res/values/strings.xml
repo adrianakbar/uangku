@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Uangku</string>
+    <string name="widget_description">Widget ringkasan saldo dan transaksi Uangku (Medium)</string>
+    <string name="widget_small_description">Widget ringkasan saldo Uangku (Kecil)</string>
+</resources>
