@@ -38,6 +38,7 @@ class _LiquidGlassBackgroundState extends State<LiquidGlassBackground>
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF090D19) : const Color(0xFFE8EEF5), // Dynamic Slate Canvas
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // 1. Orbs Latar Belakang yang Mengalir/Mengapung

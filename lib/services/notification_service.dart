@@ -39,6 +39,13 @@ class NotificationService {
           // Logika saat notifikasi diklik (opsional)
         },
       );
+
+      // Request permission on Android 13+
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          _notificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      await androidImplementation?.requestNotificationsPermission();
+
       _isInitialized = true;
     } catch (_) {
       // Abaikan jika tidak didukung (misal running di desktop Linux/Windows)

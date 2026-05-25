@@ -14,11 +14,13 @@ import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 
 // Notifikasi Nilai Global Reaktif
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 final ValueNotifier<bool> biometricEnabledNotifier = ValueNotifier(false);
 final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   runApp(const UangkuApp());
 }
 
@@ -127,6 +129,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: false,
       body: LiquidGlassBackground(
         child: Stack(
           children: [
