@@ -29,7 +29,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': const Color(0xFFA5B4FC)},
   ];
 
-  final List<String> _wallets = ['Cash', 'BCA Savings', 'Gopay Wallet'];
+  final List<String> _wallets = [
+    'Cash',
+    'BCA Savings',
+    'Bank Mandiri',
+    'Gopay Wallet',
+    'Shopeepay',
+  ];
 
   @override
   void dispose() {
