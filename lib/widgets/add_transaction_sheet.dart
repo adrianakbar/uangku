@@ -57,7 +57,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: (MediaQuery.of(context).size.height - bottomInset) * 0.9,
+            maxHeight: bottomInset > 0
+                ? (MediaQuery.of(context).size.height - bottomInset - 16)
+                : (MediaQuery.of(context).size.height * 0.85),
           ),
           padding: const EdgeInsets.only(
             left: 24,
@@ -101,15 +103,19 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Tambah Transaksi',
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Text(
+                        'Tambah Transaksi',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     // Sliding Pill Switcher
                     Container(
                       height: 38,
@@ -235,6 +241,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                                 fontSize: 12,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -276,6 +284,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: _selectedWallet,
+                                isExpanded: true,
                                 dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
                                 icon: Icon(Icons.arrow_drop_down, color: subTextColor),
                                 style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
@@ -444,7 +453,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
               ? (isExpenseButton ? const Color(0xFFFF5252).withOpacity(0.18) : const Color(0xFF00E676).withOpacity(0.18))

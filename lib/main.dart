@@ -14,7 +14,7 @@ import 'screens/login_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/analytics_screen.dart';
-import 'screens/budgets_screen.dart';
+import 'screens/history_screen.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 
@@ -178,7 +178,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final List<Widget> pages = [
       DashboardScreen(onAddTransactionPressed: _showAddTransactionForm),
       const AnalyticsScreen(),
-      const BudgetsScreen(),
+      const HistoryScreen(),
       SettingsScreen(onLogout: _handleLogout),
     ];
 

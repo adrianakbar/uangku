@@ -9,10 +9,7 @@ import '../services/auth_service.dart';
 class DashboardScreen extends StatefulWidget {
   final VoidCallback onAddTransactionPressed;
 
-  const DashboardScreen({
-    super.key,
-    required this.onAddTransactionPressed,
-  });
+  const DashboardScreen({super.key, required this.onAddTransactionPressed});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -48,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     final email = _authService.currentUser?.email ?? 'adrian@uangku.com';
-    
+
     // Pastikan database terisi data awal demo jika baru terdaftar
     await _dbService.seedDefaultDataForUser(email);
 
@@ -69,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Warna teks dinamis
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
@@ -84,12 +81,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 25),
 
           // 2. Total Balance Card (Glassmorphic Card Utama)
-          _isLoading 
+          _isLoading
               ? const SizedBox(
                   height: 180,
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF00ADB5))),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+                  ),
                 )
-              : _BalanceCard(balance: _balance, income: _income, expense: _expense),
+              : _BalanceCard(
+                  balance: _balance,
+                  income: _income,
+                  expense: _expense,
+                ),
           const SizedBox(height: 25),
 
           // 3. Section Title & Visual Liquid Analytics Wave
@@ -129,19 +132,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   letterSpacing: 0.5,
                 ),
               ),
-              const Text(
-                'Lihat Semua',
-                style: TextStyle(
-                  color: Color(0xFF8B5CF6), // Purple accent
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+              const Icon(
+                LucideIcons.circle_dollar_sign,
+                color: Color(0xFF00ADB5),
+                size: 20,
               ),
             ],
           ),
           const SizedBox(height: 15),
           _isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFF00ADB5)))
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+                )
               : _RecentTransactionsList(transactions: _transactions),
           const SizedBox(height: 100), // Spasi agar tidak tertutup Bottom Bar
         ],
@@ -164,7 +166,9 @@ class _DashboardHeader extends StatelessWidget {
 
     final user = AuthService().currentUser;
     final displayName = user?.displayName ?? 'Adrian';
-    final firstLetter = displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'A';
+    final firstLetter = displayName.isNotEmpty
+        ? displayName.substring(0, 1).toUpperCase()
+        : 'A';
     final photoUrl = user?.photoUrl;
 
     return Row(
@@ -179,16 +183,15 @@ class _DashboardHeader extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF00ADB5),
-                      Color(0xFFF355DA),
-                    ],
+                    colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
                   ),
                 ),
                 child: CircleAvatar(
                   radius: 22,
                   backgroundColor: const Color(0xFF0E1122),
-                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                  backgroundImage: photoUrl != null
+                      ? NetworkImage(photoUrl)
+                      : null,
                   child: photoUrl == null
                       ? Text(
                           firstLetter,
@@ -233,7 +236,7 @@ class _DashboardHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        
+
         // Row of buttons: Theme Switcher & Notifications
         Row(
           children: [
@@ -248,19 +251,25 @@ class _DashboardHeader extends StatelessWidget {
                     size: 22,
                   ),
                   onPressed: () {
-                    themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                    themeNotifier.value = isDark
+                        ? ThemeMode.light
+                        : ThemeMode.dark;
                   },
                 ),
               ),
             ),
             const SizedBox(width: 10),
-            
+
             // Notification Bell Button
             ClipOval(
               child: Container(
                 color: buttonBg,
                 child: IconButton(
-                  icon: Icon(LucideIcons.bell, color: buttonIconColor, size: 22),
+                  icon: Icon(
+                    LucideIcons.bell,
+                    color: buttonIconColor,
+                    size: 22,
+                  ),
                   onPressed: () {},
                 ),
               ),
@@ -296,7 +305,7 @@ class _BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final cardTitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
     final subTextColor = isDark ? Colors.white54 : const Color(0xFF64748B);
@@ -311,7 +320,7 @@ class _BalanceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'TOTAL SALDO LOKAL',
+                'TOTAL SALDO',
                 style: TextStyle(
                   color: cardTitleColor,
                   fontSize: 12,
@@ -320,7 +329,10 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF00ADB5).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
@@ -392,10 +404,7 @@ class _BalanceCard extends StatelessWidget {
                         children: [
                           Text(
                             'Pemasukan',
-                            style: TextStyle(
-                              color: subTextColor,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: subTextColor, fontSize: 12),
                           ),
                           Text(
                             _formatRupiah(income),
@@ -447,10 +456,7 @@ class _BalanceCard extends StatelessWidget {
                         children: [
                           Text(
                             'Pengeluaran',
-                            style: TextStyle(
-                              color: subTextColor,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: subTextColor, fontSize: 12),
                           ),
                           Text(
                             _formatRupiah(expense),
@@ -515,9 +521,14 @@ class _LiquidAnalyticsWave extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(0.06),
+                    color: (isDark ? Colors.white : Colors.black).withOpacity(
+                      0.06,
+                    ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -537,9 +548,7 @@ class _LiquidAnalyticsWave extends StatelessWidget {
           SizedBox(
             height: 120,
             width: double.infinity,
-            child: CustomPaint(
-              painter: _WaveChartPainter(isDark: isDark),
-            ),
+            child: CustomPaint(painter: _WaveChartPainter(isDark: isDark)),
           ),
           const SizedBox(height: 12),
           // Labels Tanggal
@@ -587,10 +596,7 @@ class _WaveChartPainter extends CustomPainter {
     // 2. Definisikan Paint Stroke untuk Garis Atas Gelombang (Glowing Path)
     final strokePaint = Paint()
       ..shader = const LinearGradient(
-        colors: [
-          Color(0xFF00ADB5),
-          Color(0xFFF355DA),
-        ],
+        colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke
@@ -639,7 +645,7 @@ class _WaveChartPainter extends CustomPainter {
     final glowPaint = Paint()
       ..color = const Color(0xFF00ADB5)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    
+
     final pointPaint = Paint()
       ..color = isDark ? Colors.white : const Color(0xFF1E293B)
       ..style = PaintingStyle.fill;
@@ -659,7 +665,7 @@ class _RecentTransactionsList extends StatelessWidget {
   final List<Map<String, dynamic>> transactions;
 
   const _RecentTransactionsList({required this.transactions});
-  
+
   Map<String, dynamic> _getCategoryStyle(String name) {
     switch (name) {
       case 'F&B':
@@ -669,7 +675,10 @@ class _RecentTransactionsList extends StatelessWidget {
       case 'Hiburan':
         return {'icon': LucideIcons.play, 'color': const Color(0xFFE50914)};
       case 'Shopping':
-        return {'icon': LucideIcons.shopping_bag, 'color': const Color(0xFF00F2FE)};
+        return {
+          'icon': LucideIcons.shopping_bag,
+          'color': const Color(0xFF00F2FE),
+        };
       case 'Tagihan':
         return {'icon': LucideIcons.receipt, 'color': const Color(0xFFFF5252)};
       case 'Gaji':
@@ -689,13 +698,27 @@ class _RecentTransactionsList extends StatelessWidget {
         final hour = date.hour.toString().padLeft(2, '0');
         final minute = date.minute.toString().padLeft(2, '0');
         return 'Hari ini, $hour:$minute';
-      } else if (difference.inDays <= 1 && date.day == now.subtract(const Duration(days: 1)).day) {
+      } else if (difference.inDays <= 1 &&
+          date.day == now.subtract(const Duration(days: 1)).day) {
         final hour = date.hour.toString().padLeft(2, '0');
         final minute = date.minute.toString().padLeft(2, '0');
         return 'Kemarin, $hour:$minute';
       } else {
         final day = date.day.toString().padLeft(2, '0');
-        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        final months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'Mei',
+          'Jun',
+          'Jul',
+          'Agu',
+          'Sep',
+          'Okt',
+          'Nov',
+          'Des',
+        ];
         final month = months[date.month - 1];
         final year = date.year;
         return '$day $month $year';
@@ -708,10 +731,12 @@ class _RecentTransactionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Warna teks dinamis
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final deepFadedTextColor = isDark ? Colors.white38 : const Color(0xFF64748B);
+    final deepFadedTextColor = isDark
+        ? Colors.white38
+        : const Color(0xFF64748B);
 
     if (transactions.isEmpty) {
       return Padding(
@@ -762,11 +787,7 @@ class _RecentTransactionsList extends StatelessWidget {
                     width: 1.2,
                   ),
                 ),
-                child: Icon(
-                  iconData,
-                  color: iconColor,
-                  size: 20,
-                ),
+                child: Icon(iconData, color: iconColor, size: 20),
               ),
               const SizedBox(width: 15),
               // Detail Deskripsi
@@ -782,7 +803,8 @@ class _RecentTransactionsList extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis, // Mencegah judul panjang overflow
+                      overflow: TextOverflow
+                          .ellipsis, // Mencegah judul panjang overflow
                     ),
                     const SizedBox(height: 4),
                     // Wrap Widget yang 100% Overflow-Proof untuk detail tanggal & sumber dana
@@ -811,7 +833,8 @@ class _RecentTransactionsList extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis, // Melindungi nama dompet panjang
+                          overflow: TextOverflow
+                              .ellipsis, // Melindungi nama dompet panjang
                         ),
                       ],
                     ),
@@ -826,22 +849,31 @@ class _RecentTransactionsList extends StatelessWidget {
                   Text(
                     '${isExpense ? "-" : "+"}${_formatRupiah(amountVal)}',
                     style: TextStyle(
-                      color: isExpense ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                      color: isExpense
+                          ? const Color(0xFFFF5252)
+                          : const Color(0xFF00E676),
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.05,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       categoryName,
                       style: TextStyle(
-                        color: isDark ? Colors.white54 : const Color(0xFF475569),
+                        color: isDark
+                            ? Colors.white54
+                            : const Color(0xFF475569),
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                       ),

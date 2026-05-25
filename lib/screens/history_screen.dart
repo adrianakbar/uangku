@@ -1,0 +1,621 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
+import '../widgets/glass_card.dart';
+
+class HistoryScreen extends StatefulWidget {
+  const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  final _dbService = DatabaseService();
+  final _authService = AuthService();
+
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _allTransactions = [];
+  
+  // State Filter
+  String _searchQuery = '';
+  String _selectedType = 'Semua'; // 'Semua', 'Pengeluaran', 'Pemasukan'
+  String _selectedCategory = 'Semua';
+
+  final List<String> _categories = [
+    'Semua',
+    'F&B',
+    'Transport',
+    'Hiburan',
+    'Shopping',
+    'Tagihan',
+    'Gaji',
+    'Lainnya'
+  ];
+
+  final Map<String, Map<String, dynamic>> _catStyles = {
+    'F&B': {'color': const Color(0xFFFFB300), 'icon': LucideIcons.coffee},
+    'Transport': {'color': const Color(0xFF00E676), 'icon': LucideIcons.car},
+    'Hiburan': {'color': const Color(0xFFE50914), 'icon': LucideIcons.play},
+    'Shopping': {'color': const Color(0xFF00F2FE), 'icon': LucideIcons.shopping_bag},
+    'Tagihan': {'color': const Color(0xFFFF5252), 'icon': LucideIcons.receipt},
+    'Gaji': {'color': const Color(0xFF00E676), 'icon': LucideIcons.arrow_up_right},
+    'Lainnya': {'color': const Color(0xFFA5B4FC), 'icon': LucideIcons.ellipsis},
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactions();
+    DatabaseService.changeNotifier.addListener(_loadTransactions);
+  }
+
+  @override
+  void dispose() {
+    DatabaseService.changeNotifier.removeListener(_loadTransactions);
+    super.dispose();
+  }
+
+  Future<void> _loadTransactions() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    final email = _authService.currentUser?.email ?? 'adrian@uangku.com';
+    final list = await _dbService.getTransactionsForUser(email);
+
+    if (mounted) {
+      setState(() {
+        _allTransactions = list;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatRupiah(double val) {
+    final str = val.toStringAsFixed(0);
+    final reg = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    final formatted = str.replaceAllMapped(reg, (Match m) => '.');
+    return 'Rp $formatted';
+  }
+
+  // Filter Transaksi di Memori secara Efisien
+  List<Map<String, dynamic>> get _filteredTransactions {
+    return _allTransactions.where((tx) {
+      // 1. Filter Pencarian
+      final title = (tx['title'] as String).toLowerCase();
+      final notes = (tx['category'] as String).toLowerCase();
+      final query = _searchQuery.toLowerCase().trim();
+      final matchesSearch = query.isEmpty || title.contains(query) || notes.contains(query);
+
+      // 2. Filter Tipe
+      bool matchesType = true;
+      if (_selectedType == 'Pengeluaran') {
+        matchesType = tx['is_expense'] == 1;
+      } else if (_selectedType == 'Pemasukan') {
+        matchesType = tx['is_expense'] == 0;
+      }
+
+      // 3. Filter Kategori
+      bool matchesCategory = true;
+      if (_selectedCategory != 'Semua') {
+        matchesCategory = tx['category'] == _selectedCategory;
+      }
+
+      return matchesSearch && matchesType && matchesCategory;
+    }).toList();
+  }
+
+  // Pengelompokan Transaksi Kronologis O(N)
+  Map<String, List<Map<String, dynamic>>> _groupTransactions(List<Map<String, dynamic>> list) {
+    final Map<String, List<Map<String, dynamic>>> groups = {};
+    for (var tx in list) {
+      final dateStr = tx['date'] as String;
+      final date = DateTime.tryParse(dateStr) ?? DateTime.now();
+      final key = _getDateGroupKey(date);
+
+      if (!groups.containsKey(key)) {
+        groups[key] = [];
+      }
+      groups[key]!.add(tx);
+    }
+    return groups;
+  }
+
+  String _getDateGroupKey(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final txDate = DateTime(date.year, date.month, date.day);
+
+    if (txDate == today) {
+      return 'Hari Ini';
+    } else if (txDate == yesterday) {
+      return 'Kemarin';
+    } else {
+      final months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return '${date.day} ${months[date.month - 1]} ${date.year}';
+    }
+  }
+
+  void _confirmDeleteTransaction(int id, String title, double amount, bool isExpense) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+        final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
+
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF0E1122).withOpacity(0.85) : Colors.white.withOpacity(0.9),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(
+                color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08),
+                width: 1.5,
+              ),
+            ),
+            title: Row(
+              children: [
+                const Icon(LucideIcons.triangle_alert, color: Color(0xFFFF5252), size: 24),
+                const SizedBox(width: 10),
+                Text(
+                  'Hapus Transaksi?',
+                  style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ],
+            ),
+            content: Text(
+              'Apakah Anda yakin ingin menghapus catatan "$title" sebesar ${_formatRupiah(amount)}? Tindakan ini permanen.',
+              style: TextStyle(color: subTextColor, fontSize: 14, height: 1.5),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Batal', style: TextStyle(color: subTextColor, fontWeight: FontWeight.bold)),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await _dbService.deleteTransaction(id);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Catatan transaksi berhasil dihapus.')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5252),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: const Text('Hapus', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
+    final textInputColor = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03);
+    final textInputBorderColor = isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
+
+    final filtered = _filteredTransactions;
+    final grouped = _groupTransactions(filtered);
+
+    // Hitung ringkasan dinamis dari list hasil filter saat ini
+    double currentIncome = 0;
+    double currentExpense = 0;
+    for (var tx in filtered) {
+      final amount = tx['amount'] as double;
+      if (tx['is_expense'] == 1) {
+        currentExpense += amount;
+      } else {
+        currentIncome += amount;
+      }
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Header Halaman
+          Text(
+            'Riwayat Keuangan',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // 2. Summary Card Dinamis & Bercahaya
+          GlassCard(
+            borderRadius: 24,
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Pemasukan Box
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00E676).withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(LucideIcons.arrow_down_left, color: Color(0xFF00E676), size: 14),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'PEMASUKAN',
+                            style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatRupiah(currentIncome),
+                        style: const TextStyle(
+                          color: Color(0xFF00E676),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(width: 1, height: 40, color: textInputBorderColor),
+                const SizedBox(width: 16),
+                // Pengeluaran Box
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF5252).withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 14),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'PENGELUARAN',
+                            style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatRupiah(currentExpense),
+                        style: const TextStyle(
+                          color: Color(0xFFFF5252),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // 3. Search Bar Glassmorphic
+          Container(
+            decoration: BoxDecoration(
+              color: textInputColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: textInputBorderColor),
+            ),
+            child: TextField(
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
+              style: TextStyle(color: textColor, fontSize: 14),
+              decoration: InputDecoration(
+                prefixIcon: Icon(LucideIcons.search, color: subTextColor, size: 20),
+                hintText: 'Cari catatan riwayat...',
+                hintStyle: TextStyle(color: subTextColor.withOpacity(0.5), fontSize: 14),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Baris Filter: Tipe Chips & Kategori Dropdown
+          Row(
+            children: [
+              // Sliding Type Selector
+              Expanded(
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: textInputColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: textInputBorderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildTypeTab('Semua'),
+                      _buildTypeTab('Pengeluaran'),
+                      _buildTypeTab('Pemasukan'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Category Filter Dropdown Pill
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: textInputColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: textInputBorderColor),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedCategory,
+                    dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
+                    icon: Icon(Icons.arrow_drop_down, color: subTextColor, size: 18),
+                    style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+                    onChanged: (String? val) {
+                      if (val != null) {
+                        setState(() {
+                          _selectedCategory = val;
+                        });
+                      }
+                    },
+                    items: _categories.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // 5. Daftar Transaksi Terkelompok atau Empty State
+          if (_isLoading) ...[
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 50),
+                child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+              ),
+            ),
+          ] else if (filtered.isEmpty) ...[
+            // Empty State yang Sangat Elegan
+            GlassCard(
+              borderRadius: 24,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+              child: Column(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00ADB5).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF00ADB5).withOpacity(0.3)),
+                    ),
+                    child: const Icon(LucideIcons.search_x, color: Color(0xFF00ADB5), size: 30),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Transaksi Tidak Ditemukan', style: TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(
+                    _allTransactions.isEmpty
+                        ? 'Anda belum memiliki riwayat transaksi offline. Mulailah mencatat keuangan Anda sekarang!'
+                        : 'Tidak ada riwayat transaksi yang cocok dengan filter pencarian dan kategori Anda.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: subTextColor, fontSize: 12, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // List Item Transaksi Berkelompok Tanggal
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: grouped.keys.length,
+              itemBuilder: (context, index) {
+                final dateKey = grouped.keys.elementAt(index);
+                final list = grouped[dateKey]!;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sticky Header untuk Grup Tanggal
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, top: 12, bottom: 8),
+                      child: Text(
+                        dateKey.toUpperCase(),
+                        style: TextStyle(
+                          color: subTextColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    
+                    // List Item di dalam Grup Tanggal
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final tx = list[idx];
+                        final id = tx['id'] as int;
+                        final title = tx['title'] as String;
+                        final category = tx['category'] as String;
+                        final wallet = tx['wallet'] as String;
+                        final amount = tx['amount'] as double;
+                        final isExpense = tx['is_expense'] == 1;
+
+                        // Peroleh style visual kategori
+                        final style = _catStyles[category] ?? _catStyles['Lainnya']!;
+                        final icon = style['icon'] as IconData;
+                        final baseColor = style['color'] as Color;
+
+                        return GlassCard(
+                          borderRadius: 20,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          child: Row(
+                            children: [
+                              // Bulatan Kategori Icon
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: baseColor.withOpacity(0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(icon, color: baseColor, size: 20),
+                              ),
+                              const SizedBox(width: 14),
+                              
+                              // Judul dan Dompet Pembayar
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '$category • $wallet',
+                                      style: TextStyle(
+                                        color: subTextColor,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Nilai Nominal & Tombol Hapus Tempat Sampah
+                              Row(
+                                children: [
+                                  Text(
+                                    '${isExpense ? "-" : "+"} ${_formatRupiah(amount)}',
+                                    style: TextStyle(
+                                      color: isExpense ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 16),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () => _confirmDeleteTransaction(id, title, amount, isExpense),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              },
+            ),
+          ],
+          const SizedBox(height: 120), // Memberi ruang aman untuk floating bottom navigation bar
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeTab(String type) {
+    final isSelected = _selectedType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedType = type;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (type == 'Pengeluaran'
+                    ? const Color(0xFFFF5252).withOpacity(0.18)
+                    : type == 'Pemasukan'
+                        ? const Color(0xFF00E676).withOpacity(0.18)
+                        : const Color(0xFF00ADB5).withOpacity(0.18))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            type,
+            style: TextStyle(
+              color: isSelected
+                  ? (type == 'Pengeluaran'
+                      ? const Color(0xFFFF5252)
+                      : type == 'Pemasukan'
+                          ? const Color(0xFF00E676)
+                          : const Color(0xFF00ADB5))
+                  : (Theme.of(context).brightness == Brightness.dark ? Colors.white38 : Colors.black45),
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

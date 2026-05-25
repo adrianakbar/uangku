@@ -83,7 +83,7 @@ class FloatingNavigationBar extends StatelessWidget {
                 ),
               ),
 
-              _buildNavItem(context, 2, LucideIcons.target, 'Anggaran'),
+              _buildNavItem(context, 2, LucideIcons.history, 'Riwayat'),
               _buildNavItem(context, 3, LucideIcons.settings, 'Setelan'),
             ],
           ),
