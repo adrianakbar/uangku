@@ -1,15 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../widgets/glass_card.dart';
 import '../main.dart'; // Akses themeNotifier global
+import '../services/database_service.dart';
+import '../services/auth_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final VoidCallback onAddTransactionPressed;
 
   const DashboardScreen({
     super.key,
     required this.onAddTransactionPressed,
   });
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final _dbService = DatabaseService();
+  final _authService = AuthService();
+
+  bool _isLoading = true;
+  double _balance = 0.0;
+  double _income = 0.0;
+  double _expense = 0.0;
+  List<Map<String, dynamic>> _transactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    DatabaseService.changeNotifier.addListener(_loadData);
+  }
+
+  @override
+  void dispose() {
+    DatabaseService.changeNotifier.removeListener(_loadData);
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    final email = _authService.currentUser?.email ?? 'adrian@uangku.com';
+    
+    // Pastikan database terisi data awal demo jika baru terdaftar
+    await _dbService.seedDefaultDataForUser(email);
+
+    final summary = await _dbService.getSummaryForUser(email);
+    final txs = await _dbService.getTransactionsForUser(email);
+
+    if (mounted) {
+      setState(() {
+        _balance = summary['balance'] ?? 0.0;
+        _income = summary['income'] ?? 0.0;
+        _expense = summary['expense'] ?? 0.0;
+        _transactions = txs;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +84,12 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 25),
 
           // 2. Total Balance Card (Glassmorphic Card Utama)
-          const _BalanceCard(),
+          _isLoading 
+              ? const SizedBox(
+                  height: 180,
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF00ADB5))),
+                )
+              : _BalanceCard(balance: _balance, income: _income, expense: _expense),
           const SizedBox(height: 25),
 
           // 3. Section Title & Visual Liquid Analytics Wave
@@ -38,7 +98,7 @@ class DashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'Arus Kas Pekan Ini',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -62,7 +122,7 @@ class DashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'Transaksi Terbaru',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -80,7 +140,9 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 15),
-          const _RecentTransactionsList(),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF00ADB5)))
+              : _RecentTransactionsList(transactions: _transactions),
           const SizedBox(height: 100), // Spasi agar tidak tertutup Bottom Bar
         ],
       ),
@@ -100,60 +162,77 @@ class _DashboardHeader extends StatelessWidget {
     final buttonBg = (isDark ? Colors.white : Colors.black).withOpacity(0.06);
     final buttonIconColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
+    final user = AuthService().currentUser;
+    final displayName = user?.displayName ?? 'Adrian';
+    final firstLetter = displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'A';
+    final photoUrl = user?.photoUrl;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            // Glowing Avatar Ring
-            Container(
-              padding: const EdgeInsets.all(2.5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF00ADB5),
-                    Color(0xFFF355DA),
+        Expanded(
+          child: Row(
+            children: [
+              // Glowing Avatar Ring
+              Container(
+                padding: const EdgeInsets.all(2.5),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF00ADB5),
+                      Color(0xFFF355DA),
+                    ],
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundColor: const Color(0xFF0E1122),
+                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                  child: photoUrl == null
+                      ? Text(
+                          firstLetter,
+                          style: const TextStyle(
+                            color: Color(0xFF00ADB5),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Halo, $displayName',
+                      style: GoogleFonts.poppins(
+                        color: textColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Kelola uangmu dengan bijak!',
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-              child: const CircleAvatar(
-                radius: 22,
-                backgroundColor: Color(0xFF0E1122),
-                child: Text(
-                  'A',
-                  style: TextStyle(
-                    color: Color(0xFF00ADB5),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Halo, Adrian',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Kelola uangmu dengan bijak!',
-                  style: TextStyle(
-                    color: subTextColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 10),
         
         // Row of buttons: Theme Switcher & Notifications
         Row(
@@ -193,9 +272,26 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
+String _formatRupiah(double val) {
+  final isNegative = val < 0;
+  final absVal = val.abs();
+  final str = absVal.toStringAsFixed(0);
+  final reg = RegExp(r'\B(?=(\d{3})+(?!\d))');
+  final formatted = str.replaceAllMapped(reg, (Match m) => '.');
+  return '${isNegative ? '-' : ''}Rp $formatted';
+}
+
 // --- WIDGET KARTU SALDO ---
 class _BalanceCard extends StatelessWidget {
-  const _BalanceCard();
+  final double balance;
+  final double income;
+  final double expense;
+
+  const _BalanceCard({
+    required this.balance,
+    required this.income,
+    required this.expense,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -256,8 +352,8 @@ class _BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Rp 8.450.000',
-            style: TextStyle(
+            _formatRupiah(balance),
+            style: GoogleFonts.poppins(
               color: textColor,
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -302,8 +398,8 @@ class _BalanceCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Rp 12.3M',
-                            style: TextStyle(
+                            _formatRupiah(income),
+                            style: GoogleFonts.poppins(
                               color: textColor,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -357,8 +453,8 @@ class _BalanceCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Rp 3.85M',
-                            style: TextStyle(
+                            _formatRupiah(expense),
+                            style: GoogleFonts.poppins(
                               color: textColor,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -560,7 +656,54 @@ class _WaveChartPainter extends CustomPainter {
 
 // --- WIDGET DAFTAR RIWAYAT TRANSAKSI ---
 class _RecentTransactionsList extends StatelessWidget {
-  const _RecentTransactionsList();
+  final List<Map<String, dynamic>> transactions;
+
+  const _RecentTransactionsList({required this.transactions});
+  
+  Map<String, dynamic> _getCategoryStyle(String name) {
+    switch (name) {
+      case 'F&B':
+        return {'icon': LucideIcons.coffee, 'color': const Color(0xFFFFB300)};
+      case 'Transport':
+        return {'icon': LucideIcons.car, 'color': const Color(0xFF00E676)};
+      case 'Hiburan':
+        return {'icon': LucideIcons.play, 'color': const Color(0xFFE50914)};
+      case 'Shopping':
+        return {'icon': LucideIcons.shopping_bag, 'color': const Color(0xFF00F2FE)};
+      case 'Tagihan':
+        return {'icon': LucideIcons.receipt, 'color': const Color(0xFFFF5252)};
+      case 'Gaji':
+        return {'icon': LucideIcons.banknote, 'color': const Color(0xFF00E676)};
+      default:
+        return {'icon': LucideIcons.ellipsis, 'color': const Color(0xFFA5B4FC)};
+    }
+  }
+
+  String _formatFriendlyDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays == 0 && date.day == now.day) {
+        final hour = date.hour.toString().padLeft(2, '0');
+        final minute = date.minute.toString().padLeft(2, '0');
+        return 'Hari ini, $hour:$minute';
+      } else if (difference.inDays <= 1 && date.day == now.subtract(const Duration(days: 1)).day) {
+        final hour = date.hour.toString().padLeft(2, '0');
+        final minute = date.minute.toString().padLeft(2, '0');
+        return 'Kemarin, $hour:$minute';
+      } else {
+        final day = date.day.toString().padLeft(2, '0');
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        final month = months[date.month - 1];
+        final year = date.year;
+        return '$day $month $year';
+      }
+    } catch (_) {
+      return dateStr;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -570,59 +713,37 @@ class _RecentTransactionsList extends StatelessWidget {
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final deepFadedTextColor = isDark ? Colors.white38 : const Color(0xFF64748B);
 
-    // Data Mocks Transaksi
-    final List<Map<String, dynamic>> items = [
-      {
-        'title': 'Kopi Cappuccino',
-        'category': 'F&B',
-        'amount': '-Rp 35.000',
-        'isExpense': true,
-        'wallet': 'Cash',
-        'icon': LucideIcons.coffee,
-        'color': const Color(0xFFFFB300), // Amber/Orange
-        'date': 'Hari ini, 15:30',
-      },
-      {
-        'title': 'Gaji Pokok Bulanan',
-        'category': 'Gaji',
-        'amount': '+Rp 7.500.000',
-        'isExpense': false,
-        'wallet': 'BCA Savings',
-        'icon': LucideIcons.banknote,
-        'color': const Color(0xFF00E676), // Green
-        'date': 'Kemarin, 09:00',
-      },
-      {
-        'title': 'Langganan Netflix Premium Bulanan',
-        'category': 'Hiburan',
-        'amount': '-Rp 186.000',
-        'isExpense': true,
-        'wallet': 'Gopay Wallet Utama',
-        'icon': LucideIcons.play,
-        'color': const Color(0xFFE50914), // Netflix Red
-        'date': '22 Mei 2026',
-      },
-      {
-        'title': 'Beli Bahan Makanan',
-        'category': 'Groceries',
-        'amount': '-Rp 245.000',
-        'isExpense': true,
-        'wallet': 'Cash',
-        'icon': LucideIcons.shopping_bag,
-        'color': const Color(0xFF00ADB5), // Turquoise/Cyan
-        'date': '20 Mei 2026',
-      },
-    ];
+    if (transactions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Column(
+            children: [
+              const Icon(LucideIcons.receipt, color: Colors.white24, size: 40),
+              const SizedBox(height: 12),
+              Text(
+                'Belum ada transaksi.',
+                style: TextStyle(color: deepFadedTextColor, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
+      itemCount: transactions.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final item = items[index];
-        final isExpense = item['isExpense'] as bool;
-        final iconColor = item['color'] as Color;
+        final item = transactions[index];
+        final isExpense = item['is_expense'] == 1;
+        final amountVal = item['amount'] as double;
+        final categoryName = item['category'] as String;
+        final style = _getCategoryStyle(categoryName);
+        final iconColor = style['color'] as Color;
+        final iconData = style['icon'] as IconData;
 
         return GlassCard(
           borderRadius: 20,
@@ -642,7 +763,7 @@ class _RecentTransactionsList extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  item['icon'] as IconData,
+                  iconData,
                   color: iconColor,
                   size: 20,
                 ),
@@ -671,7 +792,7 @@ class _RecentTransactionsList extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         Text(
-                          item['date'] as String,
+                          _formatFriendlyDate(item['date'] as String),
                           style: TextStyle(
                             color: deepFadedTextColor,
                             fontSize: 11,
@@ -703,7 +824,7 @@ class _RecentTransactionsList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    item['amount'] as String,
+                    '${isExpense ? "-" : "+"}${_formatRupiah(amountVal)}',
                     style: TextStyle(
                       color: isExpense ? const Color(0xFFFF5252) : const Color(0xFF00E676),
                       fontSize: 15,
@@ -718,7 +839,7 @@ class _RecentTransactionsList extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      item['category'] as String,
+                      categoryName,
                       style: TextStyle(
                         color: isDark ? Colors.white54 : const Color(0xFF475569),
                         fontSize: 9,

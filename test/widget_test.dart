@@ -10,12 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:uangku/main.dart';
 
 void main() {
-  testWidgets('Dashboard smoke test', (WidgetTester tester) async {
+  testWidgets('App startup auth shell smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const UangkuApp());
 
-    // Verify that our dashboard displays welcome text and balance card.
-    expect(find.text('Halo, Adrian'), findsOneWidget);
-    expect(find.text('TOTAL SALDO LOKAL'), findsOneWidget);
+    // Memverifikasi bahwa aplikasi masuk ke halaman Login pada startup pertama kali
+    expect(find.text('UANGKU'), findsOneWidget);
+    expect(find.text('Catatan Pengeluaran Offline-First'), findsOneWidget);
   });
 }

@@ -1,9 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../services/notification_service.dart';
+import '../services/database_service.dart';
+import '../services/auth_service.dart';
 
 class AddTransactionSheet extends StatefulWidget {
-  const AddTransactionSheet({super.key});
+  final VoidCallback? onTransactionSaved;
+
+  const AddTransactionSheet({super.key, this.onTransactionSaved});
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -333,8 +338,52 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
               // 6. Glowing Neon Save Button
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
+                onTap: () async {
+                  final amountText = _amountController.text.trim();
+                  if (amountText.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Silakan masukkan jumlah nominal!')),
+                    );
+                    return;
+                  }
+
+                  final parsedAmount = double.tryParse(amountText.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+                  if (parsedAmount <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Nominal harus lebih besar dari 0!')),
+                    );
+                    return;
+                  }
+
+                  final title = _noteController.text.trim().isEmpty
+                      ? (_isExpense ? 'Pengeluaran $_selectedCategory' : 'Pemasukan $_selectedCategory')
+                      : _noteController.text.trim();
+
+                  final userEmail = AuthService().currentUser?.email ?? 'adrian@uangku.com';
+
+                  await DatabaseService().insertTransaction({
+                    'title': title,
+                    'category': _selectedCategory,
+                    'amount': parsedAmount,
+                    'is_expense': _isExpense ? 1 : 0,
+                    'wallet': _selectedWallet,
+                    'date': DateTime.now().toIso8601String(),
+                    'user_email': userEmail,
+                  });
+
+                  // Memicu notifikasi lokal instan saat transaksi disimpan
+                  final typeLabel = _isExpense ? 'Pengeluaran' : 'Pemasukan';
+                  final titleText = _isExpense ? 'Pengeluaran Baru Dicatat! 💸' : 'Pemasukan Baru Ditambahkan! 💰';
+                  
+                  NotificationService().showInstantNotification(
+                    title: titleText,
+                    body: 'Berhasil mencatat $typeLabel sebesar Rp ${parsedAmount.toStringAsFixed(0)} untuk $_selectedCategory via $_selectedWallet.',
+                  );
+
+                  widget.onTransactionSaved?.call();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
                 },
                 child: Container(
                   width: double.infinity,
