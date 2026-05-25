@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../services/notification_service.dart';
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
 
@@ -384,15 +383,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       'date': DateTime.now().toIso8601String(),
                       'user_email': userEmail,
                     });
-
-                    // Memicu notifikasi lokal instan saat transaksi disimpan
-                    final typeLabel = _isExpense ? 'Pengeluaran' : 'Pemasukan';
-                    final titleText = _isExpense ? 'Pengeluaran Baru Dicatat! 💸' : 'Pemasukan Baru Ditambahkan! 💰';
-                    
-                    NotificationService().showInstantNotification(
-                      title: titleText,
-                      body: 'Berhasil mencatat $typeLabel sebesar Rp ${parsedAmount.toStringAsFixed(0)} untuk $_selectedCategory via $_selectedWallet.',
-                    );
 
                     widget.onTransactionSaved?.call();
                     if (context.mounted) {

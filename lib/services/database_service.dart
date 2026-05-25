@@ -199,16 +199,26 @@ class DatabaseService {
   // Melakukan Seed Data Awal untuk demo yang indah agar dasbor tidak kosong
   Future<void> seedDefaultDataForUser(String email) async {
     final db = await database;
-    
-    // Cek apakah user ini sudah memiliki transaksi
+    final emailClean = email.trim().toLowerCase();
+    final key = 'seeded_$emailClean';
+
+    // 1. Cek apakah user ini sudah pernah di-seed sebelumnya
+    final isSeeded = await getSetting(key);
+    if (isSeeded == 'true') return; // Sudah pernah di-seed, lewati
+
+    // 2. Cek tambahan cadangan: jika user memiliki transaksi aktif di DB, tandai sudah di-seed & lewati
     final List<Map<String, dynamic>> existing = await db.query(
       'transactions',
       where: 'LOWER(user_email) = ?',
-      whereArgs: [email.trim().toLowerCase()],
+      whereArgs: [emailClean],
       limit: 1,
     );
 
-    if (existing.isNotEmpty) return; // User sudah punya data, lewati seed
+    if (existing.isNotEmpty) {
+      // Simpan status seeded agar tidak memeriksa transaksi lagi di masa depan
+      await saveSetting(key, 'true');
+      return;
+    }
 
     final now = DateTime.now();
     final todayStr = now.toIso8601String();
@@ -260,6 +270,9 @@ class DatabaseService {
       batch.insert('transactions', tx);
     }
     await batch.commit(noResult: true);
+
+    // Simpan tanda bahwa user ini sudah berhasil di-seed
+    await saveSetting(key, 'true');
   }
 
   // --- METHODS UNTUK ANGGARAN (BUDGETS) ---
