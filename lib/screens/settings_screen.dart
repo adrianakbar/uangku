@@ -241,6 +241,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
 
+          // Tampilan & Tema Section
+          _buildSectionTitle('TAMPILAN & TEMA', subTextColor),
+          const SizedBox(height: 10),
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: ValueListenableBuilder<ThemeMode>(
+              valueListenable: themeNotifier,
+              builder: (context, currentMode, _) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.palette, color: Color(0xFF00ADB5), size: 22),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                  Text(
+                                  'Tema Aplikasi',
+                                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _getThemeModeLabel(currentMode),
+                                  style: TextStyle(color: subTextColor, fontSize: 11),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      height: 36,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.06),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<ThemeMode>(
+                          value: currentMode,
+                          dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
+                          icon: Icon(Icons.arrow_drop_down, color: subTextColor, size: 18),
+                          style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+                          onChanged: (ThemeMode? val) async {
+                            if (val != null) {
+                              themeNotifier.value = val;
+                              String dbValue = 'system';
+                              if (val == ThemeMode.light) {
+                                dbValue = 'light';
+                              } else if (val == ThemeMode.dark) {
+                                dbValue = 'dark';
+                              }
+                              await DatabaseService().saveSetting('theme_mode', dbValue);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Tema aplikasi berhasil diperbarui!')),
+                                );
+                              }
+                            }
+                          },
+                          items: const [
+                            DropdownMenuItem(
+                              value: ThemeMode.system,
+                              child: Text('Ikuti Sistem'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.light,
+                              child: Text('Tema Terang'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.dark,
+                              child: Text('Tema Gelap'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // 4. Cadangan Data & Database Section
           _buildSectionTitle('DATA & CADANGAN', subTextColor),
           const SizedBox(height: 10),
@@ -322,5 +420,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const Icon(LucideIcons.chevron_right, color: Colors.white30, size: 16),
       ],
     );
+  }
+
+  String _getThemeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'Tema saat ini: Mengikuti pengaturan sistem';
+      case ThemeMode.light:
+        return 'Tema saat ini: Terang (Light Mode)';
+      case ThemeMode.dark:
+        return 'Tema saat ini: Gelap (Dark Mode)';
+    }
   }
 }

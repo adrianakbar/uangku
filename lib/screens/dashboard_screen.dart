@@ -250,10 +250,13 @@ class _DashboardHeader extends StatelessWidget {
                     color: buttonIconColor,
                     size: 22,
                   ),
-                  onPressed: () {
-                    themeNotifier.value = isDark
-                        ? ThemeMode.light
-                        : ThemeMode.dark;
+                  onPressed: () async {
+                    final nextMode = isDark ? ThemeMode.light : ThemeMode.dark;
+                    themeNotifier.value = nextMode;
+                    await DatabaseService().saveSetting(
+                      'theme_mode',
+                      nextMode == ThemeMode.light ? 'light' : 'dark',
+                    );
                   },
                 ),
               ),

@@ -19,7 +19,7 @@ import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 
 // Notifikasi Nilai Global Reaktif
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 final ValueNotifier<bool> biometricEnabledNotifier = ValueNotifier(false);
 final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
 
@@ -109,6 +109,16 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     // 3. Pulihkan setelan notifikasi
     final notifEnabled = await db.getSetting('notifications_enabled');
     notificationsEnabledNotifier.value = notifEnabled == 'true';
+
+    // 4. Pulihkan setelan tema aplikasi (Terang, Gelap, Sistem)
+    final savedTheme = await db.getSetting('theme_mode');
+    if (savedTheme == 'light') {
+      themeNotifier.value = ThemeMode.light;
+    } else if (savedTheme == 'dark') {
+      themeNotifier.value = ThemeMode.dark;
+    } else {
+      themeNotifier.value = ThemeMode.system;
+    }
     
     if (mounted) {
       setState(() {
@@ -188,8 +198,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       body: LiquidGlassBackground(
         child: Stack(
           children: [
-            // Konten halaman aktif
-            pages[_currentIndex],
+            // Konten halaman aktif diposisikan memenuhi layar agar Stack tetap full screen
+            Positioned.fill(
+              child: pages[_currentIndex],
+            ),
 
             // Floating Navigation Bar melayang bertema premium glass
             Positioned(
