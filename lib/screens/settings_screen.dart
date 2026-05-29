@@ -2,6 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sqflite/sqflite.dart' show getDatabasesPath;
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/database_service.dart';
@@ -137,6 +141,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _authService.updateUserPhoto(pickedFile.path);
     DatabaseService.changeNotifier.value++;
     if (mounted) setState(() => _isUpdatingPhoto = false);
+  }
+
+  Future<void> _exportToCSV() async {
+    try {
+      final email = _authService.currentUser?.email ?? 'adrian@uangku.com';
+      final list = await DatabaseService().getTransactionsForUser(email);
+
+      if (list.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tidak ada transaksi untuk diekspor.')),
+          );
+        }
+        return;
+      }
+
+      StringBuffer csv = StringBuffer();
+      // Headers
+      csv.writeln('ID,Tanggal,Kategori,Judul,Jumlah,Tipe,Metode Pembayaran');
+
+      for (var tx in list) {
+        final id = tx['id'];
+        final date = tx['date'];
+        final category = tx['category'];
+        final title = tx['title'].toString().replaceAll('"', '""');
+        final amount = tx['amount'];
+        final isExpense = tx['is_expense'] == 1;
+        final type = isExpense ? 'Pengeluaran' : 'Pemasukan';
+        final wallet = tx['wallet'];
+
+        csv.writeln('$id,"$date","$category","$title",$amount,"$type","$wallet"');
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/ekspor_riwayat_uangku.csv');
+      await file.writeAsString(csv.toString());
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'Ekspor Riwayat Uangku',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengekspor data: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _backupDatabase() async {
+    try {
+      final dbPath = await getDatabasesPath();
+      final pathString = p.join(dbPath, 'uangku.db');
+      final dbFile = File(pathString);
+
+      if (!await dbFile.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Database tidak ditemukan.')),
+          );
+        }
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final backupFile = File('${tempDir.path}/uangku_backup.db');
+      if (await backupFile.exists()) {
+        await backupFile.delete();
+      }
+      await dbFile.copy(backupFile.path);
+
+      await Share.shareXFiles(
+        [XFile(backupFile.path)],
+        subject: 'Backup Database Uangku',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal melakukan backup database: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -543,6 +630,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'Simpan file laporan lokal berupa tabel Excel',
                   textColor: textColor,
                   subTextColor: subTextColor,
+                  onTap: _exportToCSV,
                 ),
                 const Divider(color: Colors.white10, height: 20),
                 _buildSettingsRow(
@@ -552,6 +640,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'Simpan salinan database offline perangkat',
                   textColor: textColor,
                   subTextColor: subTextColor,
+                  onTap: _backupDatabase,
                 ),
               ],
             ),
@@ -581,33 +670,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required Color textColor,
     required Color subTextColor,
+    VoidCallback? onTap,
   }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
           ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 15),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 2),
-              Text(subtitle, style: TextStyle(color: subTextColor, fontSize: 11)),
-            ],
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(subtitle, style: TextStyle(color: subTextColor, fontSize: 11)),
+              ],
+            ),
           ),
-        ),
-        const Icon(LucideIcons.chevron_right, color: Colors.white30, size: 16),
-      ],
+          const Icon(LucideIcons.chevron_right, color: Colors.white30, size: 16),
+        ],
+      ),
     );
   }
 
