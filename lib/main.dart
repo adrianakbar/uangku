@@ -19,6 +19,7 @@ import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'firebase_options.dart';
 
 // Notifikasi Nilai Global Reaktif
@@ -28,6 +29,9 @@ final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await FlutterDisplayMode.setHighRefreshRate();
+  } catch (_) {}
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -101,6 +105,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   void initState() {
     super.initState();
     _initPersistentState();
+    _setMaxDisplayMode();
+  }
+
+  Future<void> _setMaxDisplayMode() async {
+    try {
+      await FlutterDisplayMode.setHighRefreshRate();
+    } catch (_) {}
   }
 
   Future<void> _initPersistentState() async {

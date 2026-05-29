@@ -945,10 +945,12 @@ class _RecentTransactionsList extends StatelessWidget {
       );
     }
 
+    final displayCount = transactions.length > 10 ? 10 : transactions.length;
+
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: transactions.length,
+      itemCount: displayCount,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = transactions[index];

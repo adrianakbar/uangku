@@ -223,195 +223,221 @@ class _HistoryScreenState extends State<HistoryScreen> {
       }
     }
 
-    return SingleChildScrollView(
+    // Build the flat list for lazy loading in CustomScrollView / SliverList
+    final List<dynamic> flatList = [];
+    grouped.forEach((dateKey, list) {
+      flatList.add(dateKey); // string represents the header
+      flatList.addAll(list); // maps represent transactions
+    });
+
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Header Halaman
-          Text(
-            'Riwayat Keuangan',
-            style: plusJakartaStyle(
-              color: textColor,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // 2. Summary Card Dinamis & Bercahaya
-          GlassCard(
-            borderRadius: 24,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF5252).withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 16),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'TOTAL PENGELUARAN',
-                      style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _formatRupiah(currentExpense),
-                  style: spaceGroteskStyle(
-                    color: const Color(0xFFFF5252),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // 3. Search Bar Glassmorphic
-          Container(
-            decoration: BoxDecoration(
-              color: textInputColor,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: textInputBorderColor),
-            ),
-            child: TextField(
-              onChanged: (val) {
-                setState(() {
-                  _searchQuery = val;
-                });
-              },
-              style: TextStyle(color: textColor, fontSize: 14),
-              decoration: InputDecoration(
-                prefixIcon: Icon(LucideIcons.search, color: subTextColor, size: 20),
-                hintText: 'Cari catatan riwayat...',
-                hintStyle: TextStyle(color: subTextColor.withOpacity(0.5), fontSize: 14),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      slivers: [
+        // 1. Header Halaman
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+            child: Text(
+              'Riwayat Keuangan',
+              style: plusJakartaStyle(
+                color: textColor,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+        ),
 
-          // 4. Baris Filter Kategori
-          Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: textInputColor,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: textInputBorderColor),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.filter_list_rounded, color: subTextColor, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Filter Kategori',
-                      style: TextStyle(
-                        color: subTextColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+        // 2. Summary Card Dinamis & Bercahaya
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GlassCard(
+              borderRadius: 24,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF5252).withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 16),
                       ),
-                    ),
-                  ],
-                ),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCategory,
-                    dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
-                    icon: Icon(Icons.arrow_drop_down, color: textColor, size: 20),
-                    style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
-                    onChanged: (String? val) {
-                      if (val != null) {
-                        setState(() {
-                          _selectedCategory = val;
-                        });
-                      }
-                    },
-                    items: _categories.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                      const SizedBox(width: 8),
+                      Text(
+                        'TOTAL PENGELUARAN',
+                        style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    _formatRupiah(currentExpense),
+                    style: spaceGroteskStyle(
+                      color: const Color(0xFFFF5252),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+        ),
 
-          // 5. Daftar Transaksi Terkelompok atau Empty State
-          if (_isLoading) ...[
-            const Center(
+        // 3. Search Bar Glassmorphic
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: textInputColor,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: textInputBorderColor),
+              ),
+              child: TextField(
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                },
+                style: TextStyle(color: textColor, fontSize: 14),
+                decoration: InputDecoration(
+                  prefixIcon: Icon(LucideIcons.search, color: subTextColor, size: 20),
+                  hintText: 'Cari catatan riwayat...',
+                  hintStyle: TextStyle(color: subTextColor.withOpacity(0.5), fontSize: 14),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // 4. Baris Filter Kategori
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: textInputColor,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: textInputBorderColor),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.filter_list_rounded, color: subTextColor, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Filter Kategori',
+                        style: TextStyle(
+                          color: subTextColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedCategory,
+                      dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
+                      icon: Icon(Icons.arrow_drop_down, color: textColor, size: 20),
+                      style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
+                      onChanged: (String? val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedCategory = val;
+                          });
+                        }
+                      },
+                      items: _categories.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 24),
+        ),
+
+        // 5. Daftar Transaksi Terkelompok atau Empty State
+        if (_isLoading)
+          const SliverToBoxAdapter(
+            child: Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 50),
                 child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
               ),
             ),
-          ] else if (filtered.isEmpty) ...[
-            // Empty State yang Sangat Elegan
-            GlassCard(
-              borderRadius: 24,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-              child: Column(
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00ADB5).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF00ADB5).withOpacity(0.3)),
+          )
+        else if (filtered.isEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverToBoxAdapter(
+              child: GlassCard(
+                borderRadius: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00ADB5).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF00ADB5).withOpacity(0.3)),
+                      ),
+                      child: const Icon(LucideIcons.search_x, color: Color(0xFF00ADB5), size: 30),
                     ),
-                    child: const Icon(LucideIcons.search_x, color: Color(0xFF00ADB5), size: 30),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Transaksi Tidak Ditemukan', style: TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(
-                    _allTransactions.isEmpty
-                        ? 'Anda belum memiliki riwayat transaksi offline. Mulailah mencatat keuangan Anda sekarang!'
-                        : 'Tidak ada riwayat transaksi yang cocok dengan filter pencarian dan kategori Anda.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: subTextColor, fontSize: 12, height: 1.5),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    Text('Transaksi Tidak Ditemukan', style: TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(
+                      _allTransactions.isEmpty
+                          ? 'Anda belum memiliki riwayat transaksi offline. Mulailah mencatat keuangan Anda sekarang!'
+                          : 'Tidak ada riwayat transaksi yang cocok dengan filter pencarian dan kategori Anda.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: subTextColor, fontSize: 12, height: 1.5),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ] else ...[
-            // List Item Transaksi Berkelompok Tanggal
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: grouped.keys.length,
-              itemBuilder: (context, index) {
-                final dateKey = grouped.keys.elementAt(index);
-                final list = grouped[dateKey]!;
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final item = flatList[index];
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Sticky Header untuk Grup Tanggal
-                    Padding(
+                  if (item is String) {
+                    // Sticky / Date Header untuk Grup Tanggal
+                    return Padding(
                       padding: const EdgeInsets.only(left: 4, top: 12, bottom: 8),
                       child: Text(
-                        dateKey.toUpperCase(),
+                        item.toUpperCase(),
                         style: TextStyle(
                           color: subTextColor,
                           fontSize: 11,
@@ -419,105 +445,102 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           letterSpacing: 1.2,
                         ),
                       ),
-                    ),
-                    
-                    // List Item di dalam Grup Tanggal
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: list.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final tx = list[idx];
-                        final id = tx['id'] as int;
-                        final title = tx['title'] as String;
-                        final category = tx['category'] as String;
-                        final wallet = tx['wallet'] as String;
-                        final amount = tx['amount'] as double;
-                        final isExpense = tx['is_expense'] == 1;
+                    );
+                  } else {
+                    // Catatan Transaksi Card
+                    final tx = item as Map<String, dynamic>;
+                    final id = tx['id'] as int;
+                    final title = tx['title'] as String;
+                    final category = tx['category'] as String;
+                    final wallet = tx['wallet'] as String;
+                    final amount = tx['amount'] as double;
+                    final isExpense = tx['is_expense'] == 1;
 
-                        // Peroleh style visual kategori
-                        final style = _catStyles[category] ?? _catStyles['Lainnya']!;
-                        final icon = style['icon'] as IconData;
-                        final baseColor = style['color'] as Color;
+                    // Peroleh style visual kategori
+                    final style = _catStyles[category] ?? _catStyles['Lainnya']!;
+                    final icon = style['icon'] as IconData;
+                    final baseColor = style['color'] as Color;
 
-                        return GlassCard(
-                          borderRadius: 20,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          child: Row(
-                            children: [
-                              // Bulatan Kategori Icon
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: baseColor.withOpacity(0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(icon, color: baseColor, size: 20),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: GlassCard(
+                        borderRadius: 20,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        child: Row(
+                          children: [
+                            // Bulatan Kategori Icon
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: baseColor.withOpacity(0.12),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 14),
-                              
-                              // Judul dan Dompet Pembayar
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ExpandableText(
-                                      text: title,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '$category • $wallet',
-                                      style: TextStyle(
-                                        color: subTextColor,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // Nilai Nominal & Tombol Hapus Tempat Sampah
-                              Row(
+                              child: Icon(icon, color: baseColor, size: 20),
+                            ),
+                            const SizedBox(width: 14),
+                            
+                            // Judul dan Dompet Pembayar
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    '- ${_formatRupiah(amount)}',
-                                    style: spaceGroteskStyle(
-                                      color: const Color(0xFFFF5252),
-                                      fontSize: 13,
+                                  ExpandableText(
+                                    text: title,
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 16),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    onPressed: () => _confirmDeleteTransaction(id, title, amount, isExpense),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$category • $wallet',
+                                    style: TextStyle(
+                                      color: subTextColor,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                );
-              },
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Nilai Nominal & Tombol Hapus Tempat Sampah
+                            Row(
+                              children: [
+                                Text(
+                                  '- ${_formatRupiah(amount)}',
+                                  style: spaceGroteskStyle(
+                                    color: const Color(0xFFFF5252),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 16),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () => _confirmDeleteTransaction(id, title, amount, isExpense),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                },
+                childCount: flatList.length,
+              ),
             ),
-          ],
-          const SizedBox(height: 120), // Memberi ruang aman untuk floating bottom navigation bar
-        ],
-      ),
+          ),
+        
+        // Memberi ruang aman untuk floating bottom navigation bar
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 120),
+        ),
+      ],
     );
   }
-
 }
