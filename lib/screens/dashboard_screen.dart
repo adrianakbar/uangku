@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
+import '../widgets/expandable_text.dart';
 import '../main.dart'; // Akses themeNotifier global
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -485,8 +486,6 @@ class _DashboardHeader extends StatelessWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       'Kelola uangmu dengan bijak!',
@@ -495,8 +494,6 @@ class _DashboardHeader extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -987,15 +984,13 @@ class _RecentTransactionsList extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item['title'] as String,
+                    ExpandableText(
+                      text: item['title'] as String,
                       style: TextStyle(
                         color: textColor,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     // Wrap Widget yang 100% Overflow-Proof untuk detail tanggal & sumber dana
@@ -1023,8 +1018,6 @@ class _RecentTransactionsList extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
@@ -226,6 +227,175 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  List<String> _parseCsvLine(String line) {
+    final List<String> cells = [];
+    StringBuffer cell = StringBuffer();
+    bool inQuotes = false;
+    for (int i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+          cell.write('"');
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char == ',' && !inQuotes) {
+        cells.add(cell.toString().trim());
+        cell.clear();
+      } else {
+        cell.write(char);
+      }
+    }
+    cells.add(cell.toString().trim());
+    return cells;
+  }
+
+  Future<void> _importCSV() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (result == null || result.files.single.path == null) {
+        return;
+      }
+
+      final file = File(result.files.single.path!);
+      final lines = await file.readAsLines();
+
+      if (lines.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File CSV kosong.')),
+          );
+        }
+        return;
+      }
+
+      // Cek header minimal
+      final header = lines.first.toLowerCase();
+      if (!header.contains('kategori') && !header.contains('jumlah')) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Format CSV tidak valid. Harus memiliki header Kategori dan Jumlah.')),
+          );
+        }
+        return;
+      }
+
+      final email = _authService.currentUser?.email ?? 'adrian@uangku.com';
+      int importCount = 0;
+
+      for (int i = 1; i < lines.length; i++) {
+        final line = lines[i].trim();
+        if (line.isEmpty) continue;
+
+        final cells = _parseCsvLine(line);
+        if (cells.length < 6) continue;
+
+        // format: ID,Tanggal,Kategori,Judul,Jumlah,Tipe,Metode Pembayaran
+        final dateStr = cells[1];
+        final category = cells[2];
+        final title = cells[3];
+        final amount = double.tryParse(cells[4]) ?? 0.0;
+        final typeStr = cells[5].toLowerCase();
+        final isExpense = typeStr.contains('pengeluaran') || typeStr.contains('expense') ? 1 : 0;
+        final wallet = cells.length > 6 ? cells[6] : 'Cash';
+
+        await DatabaseService().insertTransaction({
+          'title': title,
+          'category': category,
+          'amount': amount,
+          'is_expense': isExpense,
+          'wallet': wallet,
+          'date': dateStr,
+          'user_email': email,
+        });
+        importCount++;
+      }
+
+      DatabaseService.changeNotifier.value++;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Berhasil mengimpor $importCount transaksi dari CSV.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengimpor file CSV: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _restoreDatabase() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF151929) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Pulihkan Database?', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text(
+            'Tindakan ini akan menimpa seluruh data transaksi, anggaran, dan pengaturan Anda saat ini dengan file cadangan yang diunggah. Tindakan ini tidak dapat dibatalkan.\n\nApakah Anda yakin ingin melanjutkan?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Batal', style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Ya, Pulihkan', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result == null || result.files.single.path == null) {
+        return;
+      }
+
+      final pickedPath = result.files.single.path!;
+      final extension = p.extension(pickedPath).toLowerCase();
+      if (extension != '.db' && extension != '.sqlite') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Format file tidak valid. Pilih file database (.db atau .sqlite).')),
+          );
+        }
+        return;
+      }
+
+      await DatabaseService().restoreDatabase(pickedPath);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Database berhasil dipulihkan dari file cadangan!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memulihkan database: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -374,15 +544,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Text(
                                   'Proteksi Biometrik',
                                   style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Minta Sidik Jari/Face ID saat buka aplikasi',
-                                  style: TextStyle(color: subTextColor, fontSize: 11),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -453,15 +614,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Text(
                                       'Pengingat Pencatatan Harian',
                                       style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Kirim notifikasi pengingat setiap pukul 20:00',
-                                      style: TextStyle(color: subTextColor, fontSize: 11),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
@@ -482,35 +634,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     );
                   },
-                ),
-                const SizedBox(height: 12),
-                Divider(color: isDark ? Colors.white12 : Colors.black12, height: 1),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF00ADB5),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: const Color(0xFF00ADB5).withOpacity(0.08),
-                    ),
-                    icon: const Icon(LucideIcons.send, size: 16),
-                    label: const Text(
-                      'Test Kirim Notifikasi Sekarang',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () async {
-                      await NotificationService().showTestNotification();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Notifikasi uji coba dikirim!')),
-                        );
-                      }
-                    },
-                  ),
                 ),
               ],
             ),
@@ -538,18 +661,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                  Text(
+                                Text(
                                   'Tema Aplikasi',
                                   style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _getThemeModeLabel(currentMode),
-                                  style: TextStyle(color: subTextColor, fontSize: 11),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -620,27 +734,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 10),
           GlassCard(
             borderRadius: 20,
-            padding: const EdgeInsets.all(16),
-            child: Column(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildSettingsRow(
-                  icon: LucideIcons.file_spreadsheet,
-                  color: const Color(0xFF10B981),
-                  title: 'Ekspor Riwayat ke CSV',
-                  subtitle: 'Simpan file laporan lokal berupa tabel Excel',
-                  textColor: textColor,
-                  subTextColor: subTextColor,
-                  onTap: _exportToCSV,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.arrow_left_right, color: Color(0xFF10B981), size: 22),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Aksi & Cadangan Data',
+                              style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(color: Colors.white10, height: 20),
-                _buildSettingsRow(
-                  icon: LucideIcons.database,
-                  color: const Color(0xFF3B82F6),
-                  title: 'Backup Database SQLite (.db)',
-                  subtitle: 'Simpan salinan database offline perangkat',
-                  textColor: textColor,
-                  subTextColor: subTextColor,
-                  onTap: _backupDatabase,
+                const SizedBox(width: 10),
+                Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.06),
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: null,
+                      hint: Text(
+                        'Pilih Aksi',
+                        style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
+                      icon: Icon(Icons.arrow_drop_down, color: subTextColor, size: 18),
+                      style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+                      onChanged: (String? val) {
+                        if (val == 'export_csv') {
+                          _exportToCSV();
+                        } else if (val == 'backup_sqlite') {
+                          _backupDatabase();
+                        } else if (val == 'import_csv') {
+                          _importCSV();
+                        } else if (val == 'restore_sqlite') {
+                          _restoreDatabase();
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: 'export_csv',
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.file_spreadsheet, color: const Color(0xFF10B981), size: 16),
+                              const SizedBox(width: 8),
+                              const Text('Ekspor ke CSV'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'backup_sqlite',
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.database, color: const Color(0xFF3B82F6), size: 16),
+                              const SizedBox(width: 8),
+                              const Text('Backup SQLite (.db)'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'import_csv',
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.file_up, color: const Color(0xFFF59E0B), size: 16),
+                              const SizedBox(width: 8),
+                              const Text('Unggah & Impor CSV'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'restore_sqlite',
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.upload, color: const Color(0xFFEF4444), size: 16),
+                              const SizedBox(width: 8),
+                              const Text('Unggah & Pulihkan SQLite'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -661,59 +853,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         letterSpacing: 1.2,
       ),
     );
-  }
-
-  Widget _buildSettingsRow({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required Color textColor,
-    required Color subTextColor,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(color: subTextColor, fontSize: 11)),
-              ],
-            ),
-          ),
-          const Icon(LucideIcons.chevron_right, color: Colors.white30, size: 16),
-        ],
-      ),
-    );
-  }
-
-  String _getThemeModeLabel(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return 'Tema saat ini: Mengikuti pengaturan sistem';
-      case ThemeMode.light:
-        return 'Tema saat ini: Terang (Light Mode)';
-      case ThemeMode.dark:
-        return 'Tema saat ini: Gelap (Dark Mode)';
-    }
   }
 
   // Helper: Menentukan sumber gambar avatar (lokal file atau network)

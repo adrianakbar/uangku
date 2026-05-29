@@ -224,8 +224,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                 child: Text(
                                   e.key,
                                   style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Text('${percent.toStringAsFixed(0)}%', style: TextStyle(color: subTextColor, fontSize: 11)),

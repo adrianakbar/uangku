@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
@@ -16,11 +17,16 @@ class NotificationService {
 
     try {
       // Inisialisasi zona waktu untuk penjedwalan notifikasi harian
-      tz.initializeTimeZones();
+      tz_data.initializeTimeZones();
       try {
-        tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+        final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+        tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
       } catch (_) {
-        tz.setLocalLocation(tz.UTC);
+        try {
+          tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+        } catch (_) {
+          tz.setLocalLocation(tz.UTC);
+        }
       }
 
       const AndroidInitializationSettings initializationSettingsAndroid =
@@ -128,7 +134,7 @@ class NotificationService {
         'Sudahkah kamu mencatat pengeluaran hari ini? Yuk luangkan waktu 1 menit!',
         scheduledTime,
         platformDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time, // Berulang setiap hari
       );

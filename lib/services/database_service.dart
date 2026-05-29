@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -459,5 +460,19 @@ class DatabaseService {
       where: 'setting_key = ?',
       whereArgs: [key],
     );
+  }
+
+  Future<void> restoreDatabase(String backupPath) async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+    final dbPath = await getDatabasesPath();
+    final pathString = join(dbPath, 'uangku.db');
+    final backupFile = File(backupPath);
+    await backupFile.copy(pathString);
+    _database = await _initDatabase();
+    changeNotifier.value++;
+    WidgetService().updateWidget();
   }
 }

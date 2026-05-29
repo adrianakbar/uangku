@@ -225,10 +225,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                               style: TextStyle(
                                 color: isSelected ? textColor : subTextColor,
                                 fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
+import '../widgets/expandable_text.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -461,15 +462,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      title,
+                                    ExpandableText(
+                                      text: title,
                                       style: TextStyle(
                                         color: textColor,
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
