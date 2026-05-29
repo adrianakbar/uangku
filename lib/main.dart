@@ -18,6 +18,8 @@ import 'screens/history_screen.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // Notifikasi Nilai Global Reaktif
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
@@ -26,6 +28,9 @@ final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await NotificationService().init();
   await WidgetService.init();
   runApp(const UangkuApp());

@@ -22,7 +22,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   
   // State Filter
   String _searchQuery = '';
-  String _selectedType = 'Semua'; // 'Semua', 'Pengeluaran', 'Pemasukan'
   String _selectedCategory = 'Semua';
 
   final List<String> _categories = [
@@ -86,27 +85,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // Filter Transaksi di Memori secara Efisien
   List<Map<String, dynamic>> get _filteredTransactions {
     return _allTransactions.where((tx) {
+      // Hanya tampilkan pengeluaran
+      if (tx['is_expense'] != 1) return false;
+
       // 1. Filter Pencarian
       final title = (tx['title'] as String).toLowerCase();
       final notes = (tx['category'] as String).toLowerCase();
       final query = _searchQuery.toLowerCase().trim();
       final matchesSearch = query.isEmpty || title.contains(query) || notes.contains(query);
 
-      // 2. Filter Tipe
-      bool matchesType = true;
-      if (_selectedType == 'Pengeluaran') {
-        matchesType = tx['is_expense'] == 1;
-      } else if (_selectedType == 'Pemasukan') {
-        matchesType = tx['is_expense'] == 0;
-      }
-
-      // 3. Filter Kategori
+      // 2. Filter Kategori
       bool matchesCategory = true;
       if (_selectedCategory != 'Semua') {
         matchesCategory = tx['category'] == _selectedCategory;
       }
 
-      return matchesSearch && matchesType && matchesCategory;
+      return matchesSearch && matchesCategory;
     }).toList();
   }
 
@@ -220,14 +214,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final grouped = _groupTransactions(filtered);
 
     // Hitung ringkasan dinamis dari list hasil filter saat ini
-    double currentIncome = 0;
     double currentExpense = 0;
     for (var tx in filtered) {
       final amount = tx['amount'] as double;
       if (tx['is_expense'] == 1) {
         currentExpense += amount;
-      } else {
-        currentIncome += amount;
       }
     }
 
@@ -252,77 +243,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // 2. Summary Card Dinamis & Bercahaya
           GlassCard(
             borderRadius: 24,
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Pemasukan Box
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF00E676).withOpacity(0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(LucideIcons.arrow_down_left, color: Color(0xFF00E676), size: 14),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'PEMASUKAN',
-                            style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8),
-                          ),
-                        ],
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF5252).withOpacity(0.12),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _formatRupiah(currentIncome),
-                        style: spaceGroteskStyle(
-                          color: const Color(0xFF00E676),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                      child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 16),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'TOTAL PENGELUARAN',
+                      style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                    ),
+                  ],
                 ),
-                Container(width: 1, height: 40, color: textInputBorderColor),
-                const SizedBox(width: 16),
-                // Pengeluaran Box
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF5252).withOpacity(0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 14),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'PENGELUARAN',
-                            style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _formatRupiah(currentExpense),
-                        style: spaceGroteskStyle(
-                          color: const Color(0xFFFF5252),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 10),
+                Text(
+                  _formatRupiah(currentExpense),
+                  style: spaceGroteskStyle(
+                    color: const Color(0xFFFF5252),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -355,44 +303,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 16),
 
-          // 4. Baris Filter: Tipe Chips & Kategori Dropdown
-          Row(
-            children: [
-              // Sliding Type Selector
-              Expanded(
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: textInputColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: textInputBorderColor),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildTypeTab('Semua'),
-                      _buildTypeTab('Pengeluaran'),
-                      _buildTypeTab('Pemasukan'),
-                    ],
-                  ),
+          // 4. Baris Filter Kategori
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: textInputColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: textInputBorderColor),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.filter_list_rounded, color: subTextColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Filter Kategori',
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              // Category Filter Dropdown Pill
-              Container(
-                height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: textInputColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: textInputBorderColor),
-                ),
-                child: DropdownButtonHideUnderline(
+                DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedCategory,
                     dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
-                    icon: Icon(Icons.arrow_drop_down, color: subTextColor, size: 18),
-                    style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+                    icon: Icon(Icons.arrow_drop_down, color: textColor, size: 20),
+                    style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
                     onChanged: (String? val) {
                       if (val != null) {
                         setState(() {
@@ -408,8 +350,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     }).toList(),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -546,9 +488,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    '${isExpense ? "-" : "+"} ${_formatRupiah(amount)}',
+                                    '- ${_formatRupiah(amount)}',
                                     style: spaceGroteskStyle(
-                                      color: isExpense ? const Color(0xFFFF5252) : const Color(0xFF00E676),
+                                      color: const Color(0xFFFF5252),
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -579,44 +521,4 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildTypeTab(String type) {
-    final isSelected = _selectedType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedType = type;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (type == 'Pengeluaran'
-                    ? const Color(0xFFFF5252).withOpacity(0.18)
-                    : type == 'Pemasukan'
-                        ? const Color(0xFF00E676).withOpacity(0.18)
-                        : const Color(0xFF00ADB5).withOpacity(0.18))
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            type,
-            style: TextStyle(
-              color: isSelected
-                  ? (type == 'Pengeluaran'
-                      ? const Color(0xFFFF5252)
-                      : type == 'Pemasukan'
-                          ? const Color(0xFF00E676)
-                          : const Color(0xFF00ADB5))
-                  : (Theme.of(context).brightness == Brightness.dark ? Colors.white38 : Colors.black45),
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

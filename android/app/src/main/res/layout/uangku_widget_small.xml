@@ -14,10 +14,10 @@
         android:layout_height="wrap_content"
         android:text="💰 UANGKU"
         android:textColor="#CC00ADB5"
-        android:textSize="9sp"
+        android:textSize="11sp"
         android:textStyle="bold"
         android:letterSpacing="0.12"
-        android:layout_marginBottom="6dp" />
+        android:layout_marginBottom="8dp" />
 
     <!-- Label Saldo -->
     <TextView
@@ -25,9 +25,9 @@
         android:layout_height="wrap_content"
         android:text="Keluar Bulan Ini"
         android:textColor="#99FF5252"
-        android:textSize="9sp"
+        android:textSize="11sp"
         android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="6dp" />
 
     <!-- Balance Amount -->
     <TextView
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:text="Rp –"
         android:textColor="#FFFFFFFF"
-        android:textSize="17sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginBottom="8dp" />
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:text="–"
         android:textColor="#55FFFFFF"
-        android:textSize="9sp"
+        android:textSize="10sp"
         android:gravity="center" />
 
 </LinearLayout>

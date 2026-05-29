@@ -80,12 +80,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Warna teks dinamis
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
-    final inputBg = isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03);
-    final inputBorder = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
+    final inputBg = isDark
+        ? Colors.white.withOpacity(0.04)
+        : Colors.black.withOpacity(0.03);
+    final inputBorder = isDark
+        ? Colors.white.withOpacity(0.1)
+        : Colors.black.withOpacity(0.08);
 
     return LiquidGlassBackground(
       child: Center(
@@ -109,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: const Color(0xFF00ADB5).withOpacity(0.35),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
-                    )
+                    ),
                   ],
                 ),
                 child: Padding(
@@ -185,7 +189,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                       Text(
                         _errorMessage!,
-                        style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                     const SizedBox(height: 24),
@@ -214,11 +222,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text(
                                   'Masuk',
-                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                         ),
                       ),
@@ -228,12 +243,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Pembatas "atau masuk dengan"
                     Row(
                       children: [
-                        Expanded(child: Divider(color: isDark ? Colors.white10 : Colors.black12)),
+                        Expanded(
+                          child: Divider(
+                            color: isDark ? Colors.white10 : Colors.black12,
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text('atau masuk dengan', style: TextStyle(color: subTextColor, fontSize: 11)),
+                          child: Text(
+                            'atau masuk dengan',
+                            style: TextStyle(color: subTextColor, fontSize: 11),
+                          ),
                         ),
-                        Expanded(child: Divider(color: isDark ? Colors.white10 : Colors.black12)),
+                        Expanded(
+                          child: Divider(
+                            color: isDark ? Colors.white10 : Colors.black12,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -245,17 +271,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                          color: isDark
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.black.withOpacity(0.03),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: inputBorder),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              LucideIcons.globe, // Mewakili ikon Google
-                              color: Color(0xFF4285F4),
-                              size: 18,
+                            Image.asset(
+                              'lib/assets/images/google_icon.png',
+                              width: 18,
+                              height: 18,
                             ),
                             const SizedBox(width: 10),
                             Text(
@@ -279,7 +307,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Belum punya akun? ', style: TextStyle(color: subTextColor, fontSize: 13)),
+                  Text(
+                    'Belum punya akun? ',
+                    style: TextStyle(color: subTextColor, fontSize: 13),
+                  ),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -289,7 +320,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             onRegisterSuccess: () {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Registrasi sukses! Silakan login.')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Registrasi sukses! Silakan login.',
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -350,9 +385,15 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: fadedTextColor, size: 18),
           hintText: hint,
-          hintStyle: TextStyle(color: fadedTextColor.withOpacity(0.5), fontSize: 14),
+          hintStyle: TextStyle(
+            color: fadedTextColor.withOpacity(0.5),
+            fontSize: 14,
+          ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 16,
+          ),
         ),
       ),
     );

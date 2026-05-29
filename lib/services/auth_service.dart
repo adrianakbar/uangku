@@ -1,4 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'database_service.dart';
 
 class UserSession {
@@ -93,17 +94,30 @@ class AuthService {
       // Inisialisasi tanpa scopes untuk versi GoogleSignIn 7.2.0 API baru
       await _googleSignIn.initialize();
       
-      // Catatan: GoogleSignIn akan gagal jika berkas konfigurasi google-services.json
-      // belum lengkap di platform terkait. Kita gunakan Mock Fallback apabila gagal.
       final googleUser = await _googleSignIn.authenticate();
-      final cleanEmail = googleUser.email.trim().toLowerCase();
+
+      // Dapatkan token autentikasi Google untuk Firebase
+      final googleAuth = await googleUser.authentication;
+
+      // Buat kredensial Firebase Auth dengan token Google (cukup idToken untuk verifikasi identitas)
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      // Autentikasi/Sign-In ke Firebase Auth agar tercatat di Firebase Console (Users)
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+
+      final cleanEmail = firebaseUser?.email?.trim().toLowerCase() ?? googleUser.email.trim().toLowerCase();
+      final displayName = firebaseUser?.displayName ?? googleUser.displayName ?? 'Google User';
+      final photoUrl = firebaseUser?.photoURL ?? googleUser.photoUrl;
       
       // Daftarkan/update user Google ke SQLite
       await _dbService.insertUser({
         'email': cleanEmail,
-        'display_name': googleUser.displayName ?? 'Google User',
+        'display_name': displayName,
         'password': null,
-        'photo_url': googleUser.photoUrl,
+        'photo_url': photoUrl,
         'auth_provider': 'google',
       });
 
@@ -112,13 +126,15 @@ class AuthService {
 
       _currentUser = UserSession(
         email: cleanEmail,
-        displayName: googleUser.displayName ?? 'Google User',
-        photoUrl: googleUser.photoUrl,
+        displayName: displayName,
+        photoUrl: photoUrl,
         authProvider: 'google',
       );
       await _dbService.saveSetting('logged_in_email', cleanEmail);
       return _currentUser;
     } catch (e) {
+      // Cetak error untuk memudahkan debugging alur Google Sign-In asli di Firebase
+      print("INFO: Google Sign-In asli gagal, mengaktifkan Fallback Mock Mode. Error: $e");
       // Fallback Mock Mode: Mengizinkan login Google berjalan lancar untuk demo antarmuka
       // jika plugin native melempar eksepsi karena berkas konfigurasi Firebase yang belum disiapkan.
       await Future.delayed(const Duration(milliseconds: 1000));
@@ -161,6 +177,9 @@ class AuthService {
     if (_currentUser?.authProvider == 'google') {
       try {
         await _googleSignIn.signOut();
+      } catch (_) {}
+      try {
+        await FirebaseAuth.instance.signOut();
       } catch (_) {}
     }
     _currentUser = null;
