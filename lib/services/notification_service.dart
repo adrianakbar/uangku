@@ -17,6 +17,11 @@ class NotificationService {
     try {
       // Inisialisasi zona waktu untuk penjedwalan notifikasi harian
       tz.initializeTimeZones();
+      try {
+        tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+      } catch (_) {
+        tz.setLocalLocation(tz.UTC);
+      }
 
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -120,7 +125,7 @@ class NotificationService {
       await _notificationsPlugin.zonedSchedule(
         888,
         'Catatan Pengeluaran Hari Ini 📝',
-        'Sudahkah kamu mencatat pengeluaran atau pemasukan hari ini? Yuk luangkan waktu 1 menit!',
+        'Sudahkah kamu mencatat pengeluaran hari ini? Yuk luangkan waktu 1 menit!',
         scheduledTime,
         platformDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -130,6 +135,14 @@ class NotificationService {
     } catch (_) {
       // Gagal menjadwalkan notifikasi
     }
+  }
+
+  // 4. Uji Coba Kirim Notifikasi Instan
+  Future<void> showTestNotification() async {
+    await showInstantNotification(
+      title: 'Uji Coba Notifikasi Uangku 🔔',
+      body: 'Hebat! Fitur notifikasi berjalan dengan lancar. Jangan lupa catat pengeluaranmu hari ini ya!',
+    );
   }
 
   tz.TZDateTime _nextInstanceOfEightPM() {

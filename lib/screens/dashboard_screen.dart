@@ -28,9 +28,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _income = 0.0;
   double _expense = 0.0;
   List<Map<String, dynamic>> _transactions = [];
+  List<double> _weeklyExpenses = [0, 0, 0, 0, 0, 0, 0];
+  double _weeklyAverage = 0.0;
 
   // State Filter
-  _FilterPeriod _selectedFilter = _FilterPeriod.bulan;
+  _FilterPeriod _selectedFilter = _FilterPeriod.hari;
   DateTime? _customStart;
   DateTime? _customEnd;
 
@@ -93,12 +95,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
       endDate: endDate,
     );
 
+    // Hitung tren pengeluaran pekan ini (Senin s.d. Minggu)
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final weekStart = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+    final weekTransactions = await _dbService.getTransactionsForUserFiltered(
+      email,
+      startDate: weekStart,
+      endDate: now,
+    );
+
+    final List<double> weeklyTrend = List.filled(7, 0.0);
+    for (var tx in weekTransactions) {
+      if (tx['is_expense'] == 1) {
+        final dateStr = tx['date'] as String;
+        final txDate = DateTime.tryParse(dateStr);
+        if (txDate != null) {
+          final dayIndex = txDate.weekday - 1;
+          if (dayIndex >= 0 && dayIndex < 7) {
+            weeklyTrend[dayIndex] += (tx['amount'] as num).toDouble();
+          }
+        }
+      }
+    }
+
+    final double weeklySum = weeklyTrend.reduce((a, b) => a + b);
+    final int daysPassed = now.weekday;
+    final double weeklyAvg = daysPassed > 0 ? weeklySum / daysPassed : 0.0;
+
     if (mounted) {
       setState(() {
         _balance = summary['balance'] ?? 0.0;
         _income = summary['income'] ?? 0.0;
         _expense = summary['expense'] ?? 0.0;
         _transactions = txs;
+        _weeklyExpenses = weeklyTrend;
+        _weeklyAverage = weeklyAvg;
         _isLoading = false;
       });
     }
@@ -184,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Arus Kas Pekan Ini',
+                'Tren Pengeluaran Pekan Ini',
                 style: plusJakartaStyle(
                   color: textColor,
                   fontSize: 18,
@@ -200,7 +232,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 15),
-          const _LiquidAnalyticsWave(),
+          _LiquidAnalyticsWave(
+            weeklyExpenses: _weeklyExpenses,
+            dailyAverage: _weeklyAverage,
+          ),
           const SizedBox(height: 25),
 
           // 4. Filter Pengeluaran
@@ -545,7 +580,6 @@ class _BalanceCard extends StatelessWidget {
 
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final cardTitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
-    final subTextColor = isDark ? Colors.white54 : const Color(0xFF64748B);
 
     return GlassCard(
       borderRadius: 28,
@@ -557,7 +591,7 @@ class _BalanceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'TOTAL SALDO',
+                'TOTAL PENGELUARAN',
                 style: TextStyle(
                   color: cardTitleColor,
                   fontSize: 12,
@@ -571,25 +605,25 @@ class _BalanceCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00ADB5).withOpacity(0.12),
+                  color: const Color(0xFFFF3D00).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFF00ADB5).withOpacity(0.3),
+                    color: const Color(0xFFFF3D00).withOpacity(0.3),
                     width: 1,
                   ),
                 ),
                 child: const Row(
                   children: [
                     Icon(
-                      LucideIcons.shield_check,
-                      color: Color(0xFF00ADB5),
+                      LucideIcons.arrow_down_left,
+                      color: Color(0xFFFF3D00),
                       size: 14,
                     ),
                     SizedBox(width: 4),
                     Text(
-                      'Offline',
+                      'Pengeluaran',
                       style: TextStyle(
-                        color: Color(0xFF00ADB5),
+                        color: Color(0xFFFF3D00),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -599,119 +633,15 @@ class _BalanceCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
-            _formatRupiah(balance),
+            _formatRupiah(expense),
             style: spaceGroteskStyle(
               color: textColor,
-              fontSize: 32,
+              fontSize: 34,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
-          ),
-          const SizedBox(height: 24),
-          Divider(color: isDark ? Colors.white12 : Colors.black12, height: 1),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              // Ringkasan Pemasukan
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00E676).withOpacity(0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF00E676).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        LucideIcons.arrow_up_right,
-                        color: Color(0xFF00E676),
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pemasukan',
-                            style: TextStyle(color: subTextColor, fontSize: 12),
-                          ),
-                          Text(
-                            _formatRupiah(income),
-                            style: spaceGroteskStyle(
-                              color: textColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Divider Vertikal
-              Container(
-                height: 35,
-                width: 1,
-                color: isDark ? Colors.white12 : Colors.black12,
-              ),
-              const SizedBox(width: 10),
-              // Ringkasan Pengeluaran
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF3D00).withOpacity(0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFFF3D00).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        LucideIcons.arrow_down_left,
-                        color: Color(0xFFFF3D00),
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pengeluaran',
-                            style: TextStyle(color: subTextColor, fontSize: 12),
-                          ),
-                          Text(
-                            _formatRupiah(expense),
-                            style: spaceGroteskStyle(
-                              color: textColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -721,7 +651,20 @@ class _BalanceCard extends StatelessWidget {
 
 // --- WIDGET GRAFIK GELOMBANG CAIR (CUSTOM PAINTER) ---
 class _LiquidAnalyticsWave extends StatelessWidget {
-  const _LiquidAnalyticsWave();
+  final List<double> weeklyExpenses;
+  final double dailyAverage;
+
+  const _LiquidAnalyticsWave({
+    required this.weeklyExpenses,
+    required this.dailyAverage,
+  });
+
+  String _formatRupiah(double val) {
+    final str = val.toStringAsFixed(0);
+    final reg = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    final formatted = str.replaceAllMapped(reg, (Match m) => '.');
+    return 'Rp $formatted';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -748,7 +691,7 @@ class _LiquidAnalyticsWave extends StatelessWidget {
                       style: TextStyle(color: subTextColor, fontSize: 12),
                     ),
                     Text(
-                      'Rp 550.000',
+                      _formatRupiah(dailyAverage),
                       style: TextStyle(
                         color: textColor,
                         fontSize: 16,
@@ -769,7 +712,7 @@ class _LiquidAnalyticsWave extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '7 Hari Terakhir',
+                    'Pekan Ini',
                     style: TextStyle(
                       color: isDark ? Colors.white70 : const Color(0xFF334155),
                       fontSize: 11,
@@ -785,7 +728,7 @@ class _LiquidAnalyticsWave extends StatelessWidget {
           SizedBox(
             height: 120,
             width: double.infinity,
-            child: CustomPaint(painter: _WaveChartPainter(isDark: isDark)),
+            child: CustomPaint(painter: _WaveChartPainter(isDark: isDark, expenses: weeklyExpenses)),
           ),
           const SizedBox(height: 12),
           // Labels Tanggal
@@ -810,11 +753,12 @@ class _LiquidAnalyticsWave extends StatelessWidget {
   }
 }
 
-// Painter Gelombang Kustom dengan Gradien Neon Glowing
+// Painter Gelombang Kustom dengan Gradien Neon Glowing (Data Pengeluaran Aktual)
 class _WaveChartPainter extends CustomPainter {
   final bool isDark;
+  final List<double> expenses;
 
-  _WaveChartPainter({required this.isDark});
+  _WaveChartPainter({required this.isDark, required this.expenses});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -839,16 +783,17 @@ class _WaveChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // 3. Titik Koordinat Gelombang Khas (Representasi Pengeluaran)
-    final points = [
-      Offset(0, size.height * 0.7),
-      Offset(size.width * 0.16, size.height * 0.4),
-      Offset(size.width * 0.33, size.height * 0.8),
-      Offset(size.width * 0.5, size.height * 0.25), // puncak
-      Offset(size.width * 0.66, size.height * 0.6),
-      Offset(size.width * 0.83, size.height * 0.35),
-      Offset(size.width, size.height * 0.55),
-    ];
+    // 3. Titik Koordinat Gelombang Khas (Skala Pengeluaran Aktual)
+    final maxVal = expenses.reduce((a, b) => a > b ? a : b);
+    final points = <Offset>[];
+    final double stepWidth = size.width / 6;
+    for (int i = 0; i < 7; i++) {
+      final val = expenses[i];
+      final double normalized = maxVal > 0 ? val / maxVal : 0.0;
+      // y-coordinate scaled: size.height is bottom, size.height * 0.2 is top
+      final double y = size.height - (size.height * 0.15) - (normalized * size.height * 0.65);
+      points.add(Offset(i * stepWidth, y));
+    }
 
     // 4. Konstruksi Jalur Gelombang menggunakan Bezier Curves (Smooth Curves)
     final path = Path()..moveTo(points[0].dx, points[0].dy);
@@ -887,14 +832,24 @@ class _WaveChartPainter extends CustomPainter {
       ..color = isDark ? Colors.white : const Color(0xFF1E293B)
       ..style = PaintingStyle.fill;
 
-    // Gambar titik di puncak tertinggi (Hari Kamis, index 3)
-    final peakPoint = points[3];
+    // Gambar titik di puncak pengeluaran tertinggi
+    int maxIndex = 0;
+    double peakVal = 0.0;
+    for (int i = 0; i < 7; i++) {
+      if (expenses[i] > peakVal) {
+        peakVal = expenses[i];
+        maxIndex = i;
+      }
+    }
+    final peakPoint = points[peakVal > 0 ? maxIndex : 3];
     canvas.drawCircle(peakPoint, 10, glowPaint);
     canvas.drawCircle(peakPoint, 4, pointPaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WaveChartPainter oldDelegate) {
+    return oldDelegate.expenses != expenses || oldDelegate.isDark != isDark;
+  }
 }
 
 // --- WIDGET DAFTAR RIWAYAT TRANSAKSI ---

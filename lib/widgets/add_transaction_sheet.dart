@@ -14,7 +14,7 @@ class AddTransactionSheet extends StatefulWidget {
 }
 
 class _AddTransactionSheetState extends State<AddTransactionSheet> {
-  bool _isExpense = true;
+  final bool _isExpense = true;
   String _selectedCategory = 'F&B';
   String _selectedWallet = 'Cash';
   final TextEditingController _amountController = TextEditingController();
@@ -108,32 +108,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Tambah Transaksi',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Sliding Pill Switcher
-                    Container(
-                      height: 38,
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          _buildTypeButton('Pengeluaran', true, isDark),
-                          _buildTypeButton('Pemasukan', false, isDark),
-                        ],
+                    Text(
+                      'TAMBAH PENGELUARAN',
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -437,41 +418,5 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       ),
     ),
   );
-  }
-
-  Widget _buildTypeButton(String label, bool isExpenseButton, bool isDark) {
-    final isSelected = _isExpense == isExpenseButton;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isExpense = isExpenseButton;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isExpenseButton ? const Color(0xFFFF5252).withOpacity(0.18) : const Color(0xFF00E676).withOpacity(0.18))
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? (isExpenseButton ? const Color(0xFFFF5252).withOpacity(0.3) : const Color(0xFF00E676).withOpacity(0.3))
-                : Colors.transparent,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected
-                ? (isExpenseButton ? const Color(0xFFFF5252) : const Color(0xFF00E676))
-                : (isDark ? Colors.white38 : Colors.black45),
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
   }
 }

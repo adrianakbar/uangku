@@ -33,17 +33,17 @@ class UangkuWidget : AppWidgetProvider() {
             // home_widget menyimpan data di SharedPreferences bernama "HomeWidgetPreferences"
             val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
 
-            val balance     = prefs.getString("balance",      "Rp –") ?: "Rp –"
-            val income      = prefs.getString("income_today", "Rp –") ?: "Rp –"
-            val expense     = prefs.getString("expense_today","Rp –") ?: "Rp –"
-            val lastUpdated = prefs.getString("last_updated", "–")    ?: "–"
+            val expenseToday = prefs.getString("expense_today", "Rp –") ?: "Rp –"
+            val expenseWeek  = prefs.getString("expense_week",  "Rp –") ?: "Rp –"
+            val expenseMonth = prefs.getString("expense_month", "Rp –") ?: "Rp –"
+            val lastUpdated  = prefs.getString("last_updated",  "–")    ?: "–"
 
             val views = RemoteViews(context.packageName, R.layout.uangku_widget)
 
-            views.setTextViewText(R.id.widget_balance,      balance)
-            views.setTextViewText(R.id.widget_income,       income)
-            views.setTextViewText(R.id.widget_expense,      expense)
-            views.setTextViewText(R.id.widget_last_updated, lastUpdated)
+            views.setTextViewText(R.id.widget_balance,            expenseMonth)
+            views.setTextViewText(R.id.widget_expense_today,      expenseToday)
+            views.setTextViewText(R.id.widget_expense_week,       expenseWeek)
+            views.setTextViewText(R.id.widget_last_updated,       lastUpdated)
 
             // Tap widget → buka MainActivity
             val intent = Intent(context, MainActivity::class.java).apply {

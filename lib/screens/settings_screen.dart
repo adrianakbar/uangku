@@ -345,54 +345,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 10),
           GlassCard(
             borderRadius: 20,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: ValueListenableBuilder<bool>(
-              valueListenable: notificationsEnabledNotifier,
-              builder: (context, enabled, _) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(LucideIcons.bell_ring, color: Color(0xFFF355DA), size: 22),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Pengingat Pencatatan Harian',
-                                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ValueListenableBuilder<bool>(
+                  valueListenable: notificationsEnabledNotifier,
+                  builder: (context, enabled, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.bell_ring, color: Color(0xFFF355DA), size: 22),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Pengingat Pencatatan Harian',
+                                      style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Kirim notifikasi pengingat setiap pukul 20:00',
+                                      style: TextStyle(color: subTextColor, fontSize: 11),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Kirim notifikasi pengingat setiap pukul 20:00',
-                                  style: TextStyle(color: subTextColor, fontSize: 11),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 10),
+                        Switch(
+                          value: enabled,
+                          activeColor: const Color(0xFFF355DA),
+                          onChanged: (value) async {
+                            notificationsEnabledNotifier.value = value;
+                            await DatabaseService().saveSetting('notifications_enabled', value ? 'true' : 'false');
+                            NotificationService().scheduleDailyReminder(value);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                Divider(color: isDark ? Colors.white12 : Colors.black12, height: 1),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF00ADB5),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      backgroundColor: const Color(0xFF00ADB5).withOpacity(0.08),
                     ),
-                    const SizedBox(width: 10),
-                    Switch(
-                      value: enabled,
-                      activeColor: const Color(0xFFF355DA),
-                      onChanged: (value) async {
-                        notificationsEnabledNotifier.value = value;
-                        await DatabaseService().saveSetting('notifications_enabled', value ? 'true' : 'false');
-                        NotificationService().scheduleDailyReminder(value);
-                      },
+                    icon: const Icon(LucideIcons.send, size: 16),
+                    label: const Text(
+                      'Test Kirim Notifikasi Sekarang',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
-                  ],
-                );
-              },
+                    onPressed: () async {
+                      await NotificationService().showTestNotification();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Notifikasi uji coba dikirim!')),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

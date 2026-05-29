@@ -35,9 +35,8 @@ class BiometricService {
         persistAcrossBackgrounding: true,
       );
       return didAuthenticate;
-    } on PlatformException catch (_) {
-      // Fallback cadangan jika eksepsi platform terjadi
-      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

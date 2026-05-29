@@ -28,19 +28,33 @@ class WidgetService {
 
       final now = DateTime.now();
 
-      // Saldo keseluruhan (semua waktu)
-      final summary = await _dbService.getSummaryForUser(email);
-      final balance = summary['balance'] ?? 0.0;
-
-      // Pemasukan & pengeluaran hari ini saja
+      // Pengeluaran hari ini saja
       final todayStart = DateTime(now.year, now.month, now.day);
       final todaySummary = await _dbService.getSummaryForUserFiltered(
         email,
         startDate: todayStart,
         endDate: now,
       );
-      final incomeToday = todaySummary['income'] ?? 0.0;
       final expenseToday = todaySummary['expense'] ?? 0.0;
+
+      // Pengeluaran minggu ini
+      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      final weekStart = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+      final weekSummary = await _dbService.getSummaryForUserFiltered(
+        email,
+        startDate: weekStart,
+        endDate: now,
+      );
+      final expenseWeek = weekSummary['expense'] ?? 0.0;
+
+      // Pengeluaran bulan ini
+      final monthStart = DateTime(now.year, now.month, 1);
+      final monthSummary = await _dbService.getSummaryForUserFiltered(
+        email,
+        startDate: monthStart,
+        endDate: now,
+      );
+      final expenseMonth = monthSummary['expense'] ?? 0.0;
 
       // Format waktu update
       final hour = now.hour.toString().padLeft(2, '0');
@@ -51,9 +65,9 @@ class WidgetService {
       final lastUpdated = '$day $monthStr, $hour:$minute';
 
       // Kirim ke SharedPreferences yang bisa dibaca widget native
-      await HomeWidget.saveWidgetData<String>('balance', _formatRupiah(balance));
-      await HomeWidget.saveWidgetData<String>('income_today', _formatRupiah(incomeToday));
       await HomeWidget.saveWidgetData<String>('expense_today', _formatRupiah(expenseToday));
+      await HomeWidget.saveWidgetData<String>('expense_week', _formatRupiah(expenseWeek));
+      await HomeWidget.saveWidgetData<String>('expense_month', _formatRupiah(expenseMonth));
       await HomeWidget.saveWidgetData<String>('last_updated', lastUpdated);
 
       // Minta sistem Android untuk me-refresh tampilan widget
@@ -71,9 +85,9 @@ class WidgetService {
   /// Bersihkan data widget (misal saat logout untuk privasi)
   Future<void> clearWidget() async {
     try {
-      await HomeWidget.saveWidgetData<String>('balance', 'Rp –');
-      await HomeWidget.saveWidgetData<String>('income_today', 'Rp –');
       await HomeWidget.saveWidgetData<String>('expense_today', 'Rp –');
+      await HomeWidget.saveWidgetData<String>('expense_week', 'Rp –');
+      await HomeWidget.saveWidgetData<String>('expense_month', 'Rp –');
       await HomeWidget.saveWidgetData<String>('last_updated', '–');
 
       await HomeWidget.updateWidget(androidName: _androidWidgetName);

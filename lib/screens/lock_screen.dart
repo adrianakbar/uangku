@@ -16,6 +16,7 @@ class LockScreen extends StatefulWidget {
 class _LockScreenState extends State<LockScreen> {
   final _biometricService = BiometricService();
   bool _isAuthenticating = false;
+  bool _authFailed = false;
 
   @override
   void initState() {
@@ -31,16 +32,31 @@ class _LockScreenState extends State<LockScreen> {
 
     setState(() {
       _isAuthenticating = true;
+      _authFailed = false;
     });
 
-    final success = await _biometricService.authenticate();
-
-    if (mounted) {
-      setState(() {
-        _isAuthenticating = false;
-      });
-      if (success) {
-        widget.onUnlockSuccess();
+    try {
+      final success = await _biometricService.authenticate();
+      if (mounted) {
+        if (success) {
+          widget.onUnlockSuccess();
+        } else {
+          setState(() {
+            _authFailed = true;
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _authFailed = true;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAuthenticating = false;
+        });
       }
     }
   }
@@ -79,9 +95,9 @@ class _LockScreenState extends State<LockScreen> {
                     ),
                   ],
                 ),
-                child: Icon(
+                child: const Icon(
                   LucideIcons.fingerprint_pattern,
-                  color: const Color(0xFF00ADB5),
+                  color: Color(0xFF00ADB5),
                   size: 48,
                 ),
               ),
@@ -105,41 +121,73 @@ class _LockScreenState extends State<LockScreen> {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
+
+              // Glass Warning Box if Authenticating Canceled/Failed
+              if (_authFailed) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.triangle_alert, color: Colors.orangeAccent, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Autentikasi dibatalkan / gagal',
+                      style: TextStyle(color: isDark ? Colors.orangeAccent : const Color(0xFFC2410C), fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ] else ...[
+                const SizedBox(height: 40),
+              ],
 
               // Glass Retry Button
               GestureDetector(
                 onTap: _authenticate,
-                child: GlassCard(
-                  borderRadius: 20,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _isAuthenticating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF00ADB5),
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(
-                              LucideIcons.shield_check,
-                              color: Color(0xFF00ADB5),
-                              size: 20,
-                            ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _isAuthenticating ? 'Sedang Memindai...' : 'Buka Kunci Biometrik',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_authFailed ? const Color(0xFFFF5252) : const Color(0xFF00ADB5)).withOpacity(0.15),
+                        blurRadius: 15,
+                        spreadRadius: 1,
                       ),
                     ],
+                  ),
+                  child: GlassCard(
+                    borderRadius: 20,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _isAuthenticating
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF00ADB5),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                _authFailed ? LucideIcons.refresh_cw : LucideIcons.shield_check,
+                                color: _authFailed ? const Color(0xFFFF5252) : const Color(0xFF00ADB5),
+                                size: 20,
+                              ),
+                        const SizedBox(width: 12),
+                        Text(
+                          _isAuthenticating
+                              ? 'Sedang Memindai...'
+                              : (_authFailed ? 'Coba Lagi (Pindai Ulang)' : 'Buka Kunci Biometrik'),
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

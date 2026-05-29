@@ -32,12 +32,12 @@ class UangkuWidgetSmall : AppWidgetProvider() {
             // home_widget menyimpan data di SharedPreferences bernama "HomeWidgetPreferences"
             val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
 
-            val balance     = prefs.getString("balance",     "Rp –") ?: "Rp –"
-            val lastUpdated = prefs.getString("last_updated", "–")   ?: "–"
+            val expenseMonth = prefs.getString("expense_month", "Rp –") ?: "Rp –"
+            val lastUpdated  = prefs.getString("last_updated",  "–")    ?: "–"
 
             val views = RemoteViews(context.packageName, R.layout.uangku_widget_small)
 
-            views.setTextViewText(R.id.widget_balance,      balance)
+            views.setTextViewText(R.id.widget_balance,      expenseMonth)
             views.setTextViewText(R.id.widget_last_updated, lastUpdated)
 
             // Tap widget → buka MainActivity

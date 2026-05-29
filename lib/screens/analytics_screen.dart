@@ -107,7 +107,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
           const SizedBox(height: 20),
 
-          // 1. Ringkasan Pemasukan vs Pengeluaran Card
+          // 1. Ringkasan Analisis Pengeluaran Card
           GlassCard(
             borderRadius: 24,
             padding: const EdgeInsets.all(20),
@@ -117,8 +117,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('RINGKASAN CASH FLOW', style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                    const Icon(LucideIcons.chart_spline, color: Color(0xFF00ADB5), size: 16),
+                    Text('RINGKASAN ANALISIS PENGELUARAN', style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    const Icon(LucideIcons.chart_pie, color: Color(0xFF00ADB5), size: 16),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -128,11 +128,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Pemasukan', style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
+                          const Text('Total Pengeluaran', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(_formatRupiah(_income), style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text(_formatRupiah(_expense), style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -143,39 +143,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Pengeluaran', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
+                          const Text('Kategori Pengeluaran', style: TextStyle(color: Color(0xFF00ADB5), fontSize: 11)),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(_formatRupiah(_expense), style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text('${activeCategories.length}', style: spaceGroteskStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 20),
-                // Dual Gradient Slider
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    height: 8,
-                    width: double.infinity,
-                    color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.05),
-                    child: totalSpent + _income == 0
-                        ? Container()
-                        : FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: _income / (_income + totalSpent),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Color(0xFF00ADB5), Color(0xFF00E676)],
-                                ),
-                              ),
-                            ),
-                          ),
-                  ),
                 ),
               ],
             ),
