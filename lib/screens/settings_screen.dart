@@ -518,6 +518,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       'Pengingat Pencatatan Harian',
                                       style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
                                     ),
+                                    Text(
+                                      'Dikirim setiap hari pukul 20:00',
+                                      style: TextStyle(color: subTextColor, fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -538,6 +542,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
+
               ],
             ),
           ),

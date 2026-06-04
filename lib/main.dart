@@ -124,9 +124,14 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final bioEnabled = await db.getSetting('biometric_enabled');
     biometricEnabledNotifier.value = bioEnabled == 'true';
     
-    // 3. Pulihkan setelan notifikasi
+    // 3. Pulihkan setelan notifikasi & jadwalkan ulang reminder harian jika aktif
     final notifEnabled = await db.getSetting('notifications_enabled');
-    notificationsEnabledNotifier.value = notifEnabled == 'true';
+    final isNotifEnabled = notifEnabled == 'true';
+    notificationsEnabledNotifier.value = isNotifEnabled;
+    if (isNotifEnabled) {
+      // Jadwalkan ulang setiap kali app dibuka agar tidak hilang saat restart
+      NotificationService().scheduleDailyReminder(true);
+    }
 
     // 4. Pulihkan setelan tema aplikasi (Terang, Gelap, Sistem)
     final savedTheme = await db.getSetting('theme_mode');
