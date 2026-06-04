@@ -6,8 +6,9 @@ import '../services/auth_service.dart';
 
 class AddTransactionSheet extends StatefulWidget {
   final VoidCallback? onTransactionSaved;
+  final Map<String, dynamic>? transaction;
 
-  const AddTransactionSheet({super.key, this.onTransactionSaved});
+  const AddTransactionSheet({super.key, this.onTransactionSaved, this.transaction});
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -19,6 +20,32 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String _selectedWallet = 'Cash';
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transaction != null) {
+      final tx = widget.transaction!;
+      final amount = tx['amount'];
+      if (amount is double) {
+        _amountController.text = amount.toStringAsFixed(0);
+      } else if (amount != null) {
+        _amountController.text = amount.toString();
+      }
+
+      final title = tx['title'] as String? ?? '';
+      final category = tx['category'] as String? ?? 'F&B';
+      if (title == 'Pengeluaran $category') {
+        _noteController.text = '';
+      } else {
+        _noteController.text = title;
+      }
+
+      final hasCategory = _categories.any((c) => c['name'] == category);
+      _selectedCategory = hasCategory ? category : 'Lainnya';
+      _selectedWallet = tx['wallet'] as String? ?? 'Cash';
+    }
+  }
 
   final List<Map<String, dynamic>> _categories = [
     {'name': 'F&B', 'icon': LucideIcons.coffee, 'color': const Color(0xFFFFB300)},
@@ -109,7 +136,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'TAMBAH PENGELUARAN',
+                      widget.transaction != null ? 'EDIT PENGELUARAN' : 'TAMBAH PENGELUARAN',
                       style: TextStyle(
                         color: textColor,
                         fontSize: 16,
@@ -359,15 +386,29 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
                     final userEmail = AuthService().currentUser?.email ?? 'adrian@uangku.com';
 
-                    await DatabaseService().insertTransaction({
-                      'title': title,
-                      'category': _selectedCategory,
-                      'amount': parsedAmount,
-                      'is_expense': _isExpense ? 1 : 0,
-                      'wallet': _selectedWallet,
-                      'date': DateTime.now().toIso8601String(),
-                      'user_email': userEmail,
-                    });
+                    if (widget.transaction != null) {
+                      final originalId = widget.transaction!['id'] as int;
+                      final originalDate = widget.transaction!['date'] as String;
+                      await DatabaseService().updateTransaction(originalId, {
+                        'title': title,
+                        'category': _selectedCategory,
+                        'amount': parsedAmount,
+                        'is_expense': _isExpense ? 1 : 0,
+                        'wallet': _selectedWallet,
+                        'date': originalDate,
+                        'user_email': userEmail,
+                      });
+                    } else {
+                      await DatabaseService().insertTransaction({
+                        'title': title,
+                        'category': _selectedCategory,
+                        'amount': parsedAmount,
+                        'is_expense': _isExpense ? 1 : 0,
+                        'wallet': _selectedWallet,
+                        'date': DateTime.now().toIso8601String(),
+                        'user_email': userEmail,
+                      });
+                    }
 
                     widget.onTransactionSaved?.call();
                     if (context.mounted) {
@@ -393,14 +434,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(LucideIcons.check, color: Colors.white, size: 20),
-                        SizedBox(width: 8),
+                        const Icon(LucideIcons.check, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
                         Text(
-                          'Simpan Transaksi',
-                          style: TextStyle(
+                          widget.transaction != null ? 'Simpan Perubahan' : 'Simpan Transaksi',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

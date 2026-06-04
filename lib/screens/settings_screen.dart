@@ -192,40 +192,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _backupDatabase() async {
-    try {
-      final dbPath = await getDatabasesPath();
-      final pathString = p.join(dbPath, 'uangku.db');
-      final dbFile = File(pathString);
-
-      if (!await dbFile.exists()) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Database tidak ditemukan.')),
-          );
-        }
-        return;
-      }
-
-      final tempDir = await getTemporaryDirectory();
-      final backupFile = File('${tempDir.path}/uangku_backup.db');
-      if (await backupFile.exists()) {
-        await backupFile.delete();
-      }
-      await dbFile.copy(backupFile.path);
-
-      await Share.shareXFiles(
-        [XFile(backupFile.path)],
-        subject: 'Backup Database Uangku',
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal melakukan backup database: $e')),
-        );
-      }
-    }
-  }
 
   List<String> _parseCsvLine(String line) {
     final List<String> cells = [];
@@ -332,69 +298,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _restoreDatabase() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF151929) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Pulihkan Database?', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: const Text(
-            'Tindakan ini akan menimpa seluruh data transaksi, anggaran, dan pengaturan Anda saat ini dengan file cadangan yang diunggah. Tindakan ini tidak dapat dibatalkan.\n\nApakah Anda yakin ingin melanjutkan?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Batal', style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Ya, Pulihkan', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm != true) return;
-
-    try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.any,
-      );
-
-      if (result == null || result.files.single.path == null) {
-        return;
-      }
-
-      final pickedPath = result.files.single.path!;
-      final extension = p.extension(pickedPath).toLowerCase();
-      if (extension != '.db' && extension != '.sqlite') {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Format file tidak valid. Pilih file database (.db atau .sqlite).')),
-          );
-        }
-        return;
-      }
-
-      await DatabaseService().restoreDatabase(pickedPath);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Database berhasil dipulihkan dari file cadangan!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memulihkan database: $e')),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -781,12 +684,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onChanged: (String? val) {
                         if (val == 'export_csv') {
                           _exportToCSV();
-                        } else if (val == 'backup_sqlite') {
-                          _backupDatabase();
                         } else if (val == 'import_csv') {
                           _importCSV();
-                        } else if (val == 'restore_sqlite') {
-                          _restoreDatabase();
                         }
                       },
                       items: [
@@ -801,32 +700,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         DropdownMenuItem(
-                          value: 'backup_sqlite',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.database, color: const Color(0xFF3B82F6), size: 16),
-                              const SizedBox(width: 8),
-                              const Text('Backup SQLite (.db)'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
                           value: 'import_csv',
                           child: Row(
                             children: [
                               Icon(LucideIcons.file_up, color: const Color(0xFFF59E0B), size: 16),
                               const SizedBox(width: 8),
                               const Text('Unggah & Impor CSV'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'restore_sqlite',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.upload, color: const Color(0xFFEF4444), size: 16),
-                              const SizedBox(width: 8),
-                              const Text('Unggah & Pulihkan SQLite'),
                             ],
                           ),
                         ),

@@ -161,6 +161,19 @@ class DatabaseService {
     return res;
   }
 
+  Future<int> updateTransaction(int id, Map<String, dynamic> transactionRow) async {
+    final db = await database;
+    final res = await db.update(
+      'transactions',
+      transactionRow,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    changeNotifier.value++;
+    WidgetService().updateWidget();
+    return res;
+  }
+
   Future<List<Map<String, dynamic>>> getTransactionsForUser(String email) async {
     final db = await database;
     return await db.query(

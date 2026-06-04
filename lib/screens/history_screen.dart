@@ -6,6 +6,7 @@ import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
 import '../widgets/expandable_text.dart';
+import '../widgets/add_transaction_sheet.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -138,6 +139,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ];
       return '${date.day} ${months[date.month - 1]} ${date.year}';
     }
+  }
+
+  void _showEditTransactionForm(Map<String, dynamic> tx) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddTransactionSheet(
+        transaction: tx,
+        onTransactionSaved: _loadTransactions,
+      ),
+    );
   }
 
   void _confirmDeleteTransaction(int id, String title, double amount, bool isExpense) {
@@ -463,69 +476,72 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: GlassCard(
-                        borderRadius: 20,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        child: Row(
-                          children: [
-                            // Bulatan Kategori Icon
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: baseColor.withOpacity(0.12),
-                                shape: BoxShape.circle,
+                      child: GestureDetector(
+                        onTap: () => _showEditTransactionForm(tx),
+                        child: GlassCard(
+                          borderRadius: 20,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          child: Row(
+                            children: [
+                              // Bulatan Kategori Icon
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: baseColor.withOpacity(0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(icon, color: baseColor, size: 20),
                               ),
-                              child: Icon(icon, color: baseColor, size: 20),
-                            ),
-                            const SizedBox(width: 14),
-                            
-                            // Judul dan Dompet Pembayar
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              const SizedBox(width: 14),
+                              
+                              // Judul dan Dompet Pembayar
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ExpandableText(
+                                      text: title,
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '$category • $wallet',
+                                      style: TextStyle(
+                                        color: subTextColor,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+  
+                              // Nilai Nominal & Tombol Hapus Tempat Sampah
+                              Row(
                                 children: [
-                                  ExpandableText(
-                                    text: title,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 14,
+                                  Text(
+                                    '- ${_formatRupiah(amount)}',
+                                    style: spaceGroteskStyle(
+                                      color: const Color(0xFFFF5252),
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '$category • $wallet',
-                                    style: TextStyle(
-                                      color: subTextColor,
-                                      fontSize: 11,
-                                    ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 16),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () => _confirmDeleteTransaction(id, title, amount, isExpense),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
-
-                            // Nilai Nominal & Tombol Hapus Tempat Sampah
-                            Row(
-                              children: [
-                                Text(
-                                  '- ${_formatRupiah(amount)}',
-                                  style: spaceGroteskStyle(
-                                    color: const Color(0xFFFF5252),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent, size: 16),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () => _confirmDeleteTransaction(id, title, amount, isExpense),
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
