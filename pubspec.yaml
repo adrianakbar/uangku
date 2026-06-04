@@ -78,6 +78,8 @@ flutter:
   assets:
     - lib/assets/images/uangku_logo.png
     - lib/assets/images/google_icon.png
+    - lib/assets/images/uangku_logo2_solid.png
+    - lib/assets/images/uangku_logo2_transparent.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -113,12 +115,12 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "lib/assets/images/uangku_logo.png"
+  image_path: "lib/assets/images/uangku_logo2_solid.png"
   remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#090D19"
-  image: "lib/assets/images/uangku_logo.png"
+  image: "lib/assets/images/uangku_logo2_transparent.png"
   android_12:
     color: "#090D19"
-    image: "lib/assets/images/uangku_logo.png"
+    image: "lib/assets/images/uangku_logo2_transparent.png"
