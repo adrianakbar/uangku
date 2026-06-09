@@ -23,12 +23,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Map<String, double> _categoryExpenses = {};
 
   final Map<String, Map<String, dynamic>> _catStyles = {
-    'F&B': {'color': const Color(0xFFFFB300), 'icon': LucideIcons.coffee},
-    'Transport': {'color': const Color(0xFF00E676), 'icon': LucideIcons.car},
-    'Hiburan': {'color': const Color(0xFFE50914), 'icon': LucideIcons.play},
-    'Shopping': {'color': const Color(0xFF00F2FE), 'icon': LucideIcons.shopping_bag},
-    'Tagihan': {'color': const Color(0xFFFF5252), 'icon': LucideIcons.receipt},
-    'Lainnya': {'color': const Color(0xFFA5B4FC), 'icon': LucideIcons.ellipsis},
+    'F&B': {'color': AppColors.primaryLight, 'icon': LucideIcons.coffee},
+    'Transport': {'color': AppColors.secondary, 'icon': LucideIcons.car},
+    'Hiburan': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.play},
+    'Shopping': {'color': AppColors.primaryLight, 'icon': LucideIcons.shopping_bag},
+    'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
+    'Lainnya': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.ellipsis},
   };
 
   @override
@@ -74,8 +74,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
+    final subTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
 
     if (_isLoading) {
       return Center(

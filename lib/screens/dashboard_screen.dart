@@ -159,14 +159,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? ColorScheme.dark(
                     primary: Theme.of(context).colorScheme.primary,
                     onPrimary: Colors.white,
-                    surface: const Color(0xFF151929),
+                    surface: AppColors.surfaceDark,
                     onSurface: Colors.white,
                   )
                 : ColorScheme.light(
                     primary: Theme.of(context).colorScheme.primary,
                     onPrimary: Colors.white,
-                    surface: Colors.white,
-                    onSurface: const Color(0xFF1E293B),
+                    surface: AppColors.surfaceLight,
+                    onSurface: AppColors.textLightPrimary,
                   ),
           ),
           child: child!,
@@ -186,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -390,7 +390,7 @@ class _FilterChipBar extends StatelessWidget {
                         size: 12,
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? Colors.white54 : const Color(0xFF64748B)),
+                            : (isDark ? AppColors.textDarkTertiary : AppColors.textLightTertiary),
                       ),
                       const SizedBox(width: 5),
                     ],
@@ -399,7 +399,7 @@ class _FilterChipBar extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? Colors.white60 : const Color(0xFF475569)),
+                            : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
                         fontSize: 12,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                       ),
@@ -431,10 +431,10 @@ class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? Colors.white54 : const Color(0xFF475569);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
+    final subTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
     final buttonBg = (isDark ? Colors.white : Colors.black).withOpacity(0.06);
-    final buttonIconColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final buttonIconColor = isDark ? Colors.white : AppColors.textLightPrimary;
 
     final user = AuthService().currentUser;
     final displayName = user?.displayName ?? 'Adrian';
@@ -461,7 +461,7 @@ class _DashboardHeader extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   radius: 22,
-                  backgroundColor: const Color(0xFF0E1122),
+                  backgroundColor: AppColors.bgDark,
                   backgroundImage: avatarImage,
                   child: avatarImage == null
                       ? Text(
@@ -576,8 +576,8 @@ class _BalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final cardTitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
+    final cardTitleColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
 
     return GlassCard(
       borderRadius: 28,
@@ -603,25 +603,25 @@ class _BalanceCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF3D00).withOpacity(0.12),
+                  color: AppColors.danger.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFFFF3D00).withOpacity(0.3),
+                    color: AppColors.danger.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(
                       LucideIcons.arrow_down_left,
-                      color: Color(0xFFFF3D00),
+                      color: AppColors.danger,
                       size: 14,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       'Pengeluaran',
                       style: TextStyle(
-                        color: Color(0xFFFF3D00),
+                        color: AppColors.danger,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -667,9 +667,9 @@ class _LiquidAnalyticsWave extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? Colors.white54 : const Color(0xFF64748B);
-    final labelColor = isDark ? Colors.white38 : const Color(0xFF94A3B8);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
+    final subTextColor = isDark ? AppColors.textDarkTertiary : AppColors.textLightTertiary;
+    final labelColor = isDark ? AppColors.textDarkTertiary : AppColors.textLightTertiary;
 
     return GlassCard(
       borderRadius: 24,
@@ -712,7 +712,7 @@ class _LiquidAnalyticsWave extends StatelessWidget {
                   child: Text(
                     'Pekan Ini',
                     style: TextStyle(
-                      color: isDark ? Colors.white70 : const Color(0xFF334155),
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -841,7 +841,7 @@ class _WaveChartPainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     final pointPaint = Paint()
-      ..color = isDark ? Colors.white : const Color(0xFF1E293B)
+      ..color = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary
       ..style = PaintingStyle.fill;
 
     // Gambar titik di puncak pengeluaran tertinggi
@@ -873,22 +873,22 @@ class _RecentTransactionsList extends StatelessWidget {
   Map<String, dynamic> _getCategoryStyle(String name) {
     switch (name) {
       case 'F&B':
-        return {'icon': LucideIcons.coffee, 'color': const Color(0xFFFFB300)};
+        return {'icon': LucideIcons.coffee, 'color': AppColors.primaryLight};
       case 'Transport':
-        return {'icon': LucideIcons.car, 'color': const Color(0xFF00E676)};
+        return {'icon': LucideIcons.car, 'color': AppColors.secondary};
       case 'Hiburan':
-        return {'icon': LucideIcons.play, 'color': const Color(0xFFE50914)};
+        return {'icon': LucideIcons.play, 'color': AppColors.tertiaryLight};
       case 'Shopping':
         return {
           'icon': LucideIcons.shopping_bag,
-          'color': const Color(0xFF00F2FE),
+          'color': AppColors.primaryLight,
         };
       case 'Tagihan':
-        return {'icon': LucideIcons.receipt, 'color': const Color(0xFFFF5252)};
+        return {'icon': LucideIcons.receipt, 'color': AppColors.secondary};
       case 'Gaji':
-        return {'icon': LucideIcons.banknote, 'color': const Color(0xFF00E676)};
+        return {'icon': LucideIcons.banknote, 'color': AppColors.primaryLight};
       default:
-        return {'icon': LucideIcons.ellipsis, 'color': const Color(0xFFA5B4FC)};
+        return {'icon': LucideIcons.ellipsis, 'color': AppColors.tertiaryLight};
     }
   }
 
@@ -937,10 +937,10 @@ class _RecentTransactionsList extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Warna teks dinamis
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
     final deepFadedTextColor = isDark
-        ? Colors.white38
-        : const Color(0xFF64748B);
+        ? AppColors.textDarkTertiary
+        : AppColors.textLightTertiary;
 
     if (transactions.isEmpty) {
       return Padding(
@@ -1050,8 +1050,8 @@ class _RecentTransactionsList extends StatelessWidget {
                     '${isExpense ? "-" : "+"}${_formatRupiah(amountVal)}',
                     style: TextStyle(
                       color: isExpense
-                          ? const Color(0xFFFF5252)
-                          : const Color(0xFF00E676),
+                          ? AppColors.danger
+                          : AppColors.success,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1072,8 +1072,8 @@ class _RecentTransactionsList extends StatelessWidget {
                       categoryName,
                       style: TextStyle(
                         color: isDark
-                            ? Colors.white54
-                            : const Color(0xFF475569),
+                            ? AppColors.textDarkTertiary
+                            : AppColors.textLightSecondary,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                       ),

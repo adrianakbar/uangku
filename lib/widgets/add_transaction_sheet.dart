@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
+import '../theme/design_system.dart';
 
 class AddTransactionSheet extends StatefulWidget {
   final VoidCallback? onTransactionSaved;
@@ -20,6 +21,75 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String _selectedWallet = 'Cash';
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    final month = months[date.month - 1];
+    final year = date.year;
+    
+    final daysOfWeek = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    final dayOfWeek = daysOfWeek[date.weekday - 1];
+    
+    return '$dayOfWeek, $day $month $year';
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? ColorScheme.dark(
+                    primary: Theme.of(context).colorScheme.primary,
+                    onPrimary: Colors.white,
+                    surface: AppColors.surfaceDark,
+                    onSurface: Colors.white,
+                  )
+                : ColorScheme.light(
+                    primary: Theme.of(context).colorScheme.primary,
+                    onPrimary: Colors.white,
+                    surface: AppColors.surfaceLight,
+                    onSurface: AppColors.textLightPrimary,
+                  ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -44,16 +114,21 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final hasCategory = _categories.any((c) => c['name'] == category);
       _selectedCategory = hasCategory ? category : 'Lainnya';
       _selectedWallet = tx['wallet'] as String? ?? 'Cash';
+
+      final dateStr = tx['date'] as String?;
+      if (dateStr != null) {
+        _selectedDate = DateTime.tryParse(dateStr) ?? DateTime.now();
+      }
     }
   }
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'F&B', 'icon': LucideIcons.coffee, 'color': const Color(0xFFFFB300)},
-    {'name': 'Transport', 'icon': LucideIcons.car, 'color': const Color(0xFF00E676)},
-    {'name': 'Hiburan', 'icon': LucideIcons.play, 'color': const Color(0xFFE50914)},
-    {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': const Color(0xFF00F2FE)},
-    {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': const Color(0xFFFF5252)},
-    {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': const Color(0xFFA5B4FC)},
+    {'name': 'F&B', 'icon': LucideIcons.coffee, 'color': AppColors.primaryLight},
+    {'name': 'Transport', 'icon': LucideIcons.car, 'color': AppColors.secondary},
+    {'name': 'Hiburan', 'icon': LucideIcons.play, 'color': AppColors.tertiaryLight},
+    {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': AppColors.primaryLight},
+    {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': AppColors.secondary},
+    {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': AppColors.tertiaryLight},
   ];
 
   final List<String> _wallets = [
@@ -77,9 +152,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Sistem Desain Warna Dinamis Terang/Gelap
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
-    final fadedTextColor = isDark ? Colors.white38 : const Color(0xFF64748B);
+    final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
+    final subTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
+    final fadedTextColor = isDark ? AppColors.textDarkTertiary : AppColors.textLightTertiary;
     final inputBgColor = isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03);
     final inputBorderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
 
@@ -100,7 +175,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             bottom: 24,
           ),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0E1122).withOpacity(0.85) : const Color(0xFFF1F5F9).withOpacity(0.92),
+            color: isDark ? AppColors.bgDark.withOpacity(0.85) : AppColors.bgLight.withOpacity(0.92),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(32),
               topRight: Radius.circular(32),
@@ -176,9 +251,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       fontWeight: FontWeight.bold,
                     ),
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         LucideIcons.wallet,
-                        color: Color(0xFF00ADB5),
+                        color: Theme.of(context).colorScheme.primary,
                         size: 24,
                       ),
                       prefixIconConstraints: const BoxConstraints(
@@ -263,7 +338,61 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 ),
                 const SizedBox(height: 20),
 
-                // 5. Dompet & Catatan Bar
+                // 5. Pilihan Tanggal Transaksi
+                Text(
+                  'TANGGAL TRANSAKSI',
+                  style: TextStyle(
+                    color: subTextColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: inputBgColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: inputBorderColor,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.calendar,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              _formatDate(_selectedDate),
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Icon(
+                          LucideIcons.chevron_down,
+                          color: subTextColor,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // 6. Dompet & Catatan Bar
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -296,7 +425,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                               child: DropdownButton<String>(
                                 value: _selectedWallet,
                                 isExpanded: true,
-                                dropdownColor: isDark ? const Color(0xFF0F1223) : Colors.white,
+                                dropdownColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                                 icon: Icon(Icons.arrow_drop_down, color: subTextColor),
                                 style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
                                 onChanged: (String? newValue) {
@@ -388,24 +517,44 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
                     if (widget.transaction != null) {
                       final originalId = widget.transaction!['id'] as int;
-                      final originalDate = widget.transaction!['date'] as String;
+                      final originalDateStr = widget.transaction!['date'] as String;
+                      final originalDate = DateTime.tryParse(originalDateStr) ?? DateTime.now();
+                      final finalDate = DateTime(
+                        _selectedDate.year,
+                        _selectedDate.month,
+                        _selectedDate.day,
+                        originalDate.hour,
+                        originalDate.minute,
+                        originalDate.second,
+                      );
+
                       await DatabaseService().updateTransaction(originalId, {
                         'title': title,
                         'category': _selectedCategory,
                         'amount': parsedAmount,
                         'is_expense': _isExpense ? 1 : 0,
                         'wallet': _selectedWallet,
-                        'date': originalDate,
+                        'date': finalDate.toIso8601String(),
                         'user_email': userEmail,
                       });
                     } else {
+                      final now = DateTime.now();
+                      final finalDate = DateTime(
+                        _selectedDate.year,
+                        _selectedDate.month,
+                        _selectedDate.day,
+                        now.hour,
+                        now.minute,
+                        now.second,
+                      );
+
                       await DatabaseService().insertTransaction({
                         'title': title,
                         'category': _selectedCategory,
                         'amount': parsedAmount,
                         'is_expense': _isExpense ? 1 : 0,
                         'wallet': _selectedWallet,
-                        'date': DateTime.now().toIso8601String(),
+                        'date': finalDate.toIso8601String(),
                         'user_email': userEmail,
                       });
                     }
@@ -420,15 +569,15 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                     height: 52,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [
-                          Color(0xFF00ADB5),
-                          Color(0xFF7000FF),
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF00ADB5).withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
