@@ -5,6 +5,8 @@ import '../widgets/text_style_helper.dart';
 import '../widgets/liquid_glass_background.dart';
 import '../widgets/glass_card.dart';
 import '../services/auth_service.dart';
+import '../services/biometric_service.dart';
+import '../theme/design_system.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -105,12 +107,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 65,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00ADB5), Color(0xFF7000FF)],
+                  gradient: LinearGradient(
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00ADB5).withOpacity(0.35),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -206,12 +208,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 50,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00ADB5), Color(0xFF7000FF)],
+                          gradient: LinearGradient(
+                            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00ADB5).withOpacity(0.3),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -331,10 +333,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Daftar Sekarang',
                       style: TextStyle(
-                        color: Color(0xFF00ADB5),
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),

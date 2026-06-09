@@ -7,6 +7,7 @@ import '../widgets/expandable_text.dart';
 import '../main.dart'; // Akses themeNotifier global
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
+import '../theme/design_system.dart';
 
 // Enum untuk opsi filter periode
 enum _FilterPeriod { hari, minggu, bulan, tahun, rentang }
@@ -155,17 +156,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: Color(0xFF00ADB5),
+                ? ColorScheme.dark(
+                    primary: Theme.of(context).colorScheme.primary,
                     onPrimary: Colors.white,
-                    surface: Color(0xFF151929),
+                    surface: const Color(0xFF151929),
                     onSurface: Colors.white,
                   )
-                : const ColorScheme.light(
-                    primary: Color(0xFF00ADB5),
+                : ColorScheme.light(
+                    primary: Theme.of(context).colorScheme.primary,
                     onPrimary: Colors.white,
                     surface: Colors.white,
-                    onSurface: Color(0xFF1E293B),
+                    onSurface: const Color(0xFF1E293B),
                   ),
           ),
           child: child!,
@@ -199,10 +200,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // 2. Total Balance Card (Glassmorphic Card Utama)
           _isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   height: 180,
                   child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+                    child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
                   ),
                 )
               : _BalanceCard(
@@ -225,9 +226,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   letterSpacing: 0.5,
                 ),
               ),
-              const Icon(
+              Icon(
                 LucideIcons.trending_up,
-                color: Color(0xFF00ADB5),
+                color: Theme.of(context).colorScheme.primary,
                 size: 20,
               ),
             ],
@@ -252,9 +253,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   letterSpacing: 0.5,
                 ),
               ),
-              const Icon(
+              Icon(
                 LucideIcons.circle_dollar_sign,
-                color: Color(0xFF00ADB5),
+                color: Theme.of(context).colorScheme.primary,
                 size: 20,
               ),
             ],
@@ -282,8 +283,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // 5. Riwayat Transaksi Terbaru
           _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+              ? Center(
+                  child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
                 )
               : _RecentTransactionsList(transactions: _transactions),
           const SizedBox(height: 100), // Spasi agar tidak tertutup Bottom Bar
@@ -356,8 +357,8 @@ class _FilterChipBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: isSelected
-                      ? const LinearGradient(
-                          colors: [Color(0xFF00ADB5), Color(0xFF006E77)],
+                      ? LinearGradient(
+                          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.7)],
                         )
                       : null,
                   color: isSelected
@@ -373,7 +374,7 @@ class _FilterChipBar extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF00ADB5).withOpacity(0.35),
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           )
@@ -452,10 +453,10 @@ class _DashboardHeader extends StatelessWidget {
               // Glowing Avatar Ring
               Container(
                 padding: const EdgeInsets.all(2.5),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                   ),
                 ),
                 child: CircleAvatar(
@@ -465,8 +466,8 @@ class _DashboardHeader extends StatelessWidget {
                   child: avatarImage == null
                       ? Text(
                           firstLetter,
-                          style: const TextStyle(
-                            color: Color(0xFF00ADB5),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -725,7 +726,14 @@ class _LiquidAnalyticsWave extends StatelessWidget {
           SizedBox(
             height: 120,
             width: double.infinity,
-            child: CustomPaint(painter: _WaveChartPainter(isDark: isDark, expenses: weeklyExpenses)),
+            child: CustomPaint(
+              painter: _WaveChartPainter(
+                isDark: isDark,
+                expenses: weeklyExpenses,
+                primaryColor: Theme.of(context).colorScheme.primary,
+                secondaryColor: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           // Labels Tanggal
@@ -754,8 +762,15 @@ class _LiquidAnalyticsWave extends StatelessWidget {
 class _WaveChartPainter extends CustomPainter {
   final bool isDark;
   final List<double> expenses;
+  final Color primaryColor;
+  final Color secondaryColor;
 
-  _WaveChartPainter({required this.isDark, required this.expenses});
+  _WaveChartPainter({
+    required this.isDark,
+    required this.expenses,
+    required this.primaryColor,
+    required this.secondaryColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -765,16 +780,16 @@ class _WaveChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFF00ADB5).withOpacity(0.35),
-          const Color(0xFF7000FF).withOpacity(0.0),
+          primaryColor.withOpacity(0.35),
+          secondaryColor.withOpacity(0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
     // 2. Definisikan Paint Stroke untuk Garis Atas Gelombang (Glowing Path)
     final strokePaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
+      ..shader = LinearGradient(
+        colors: [primaryColor, secondaryColor],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke
@@ -822,7 +837,7 @@ class _WaveChartPainter extends CustomPainter {
 
     // 7. Tambahkan Efek Titik Puncak Glowing (Highlight)
     final glowPaint = Paint()
-      ..color = const Color(0xFF00ADB5)
+      ..color = primaryColor
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     final pointPaint = Paint()

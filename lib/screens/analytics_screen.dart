@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
+import '../theme/design_system.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -77,8 +78,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
 
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+      return Center(
+        child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
       );
     }
 
@@ -118,7 +119,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('RINGKASAN ANALISIS PENGELUARAN', style: TextStyle(color: subTextColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                    const Icon(LucideIcons.chart_pie, color: Color(0xFF00ADB5), size: 16),
+                    Icon(LucideIcons.chart_pie, color: Theme.of(context).colorScheme.primary, size: 16),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -143,7 +144,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Kategori Pengeluaran', style: TextStyle(color: Color(0xFF00ADB5), fontSize: 11)),
+                          Text('Kategori Pengeluaran', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 11)),
                           const SizedBox(height: 4),
                           FittedBox(
                             fit: BoxFit.scaleDown,
@@ -170,11 +171,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     width: 70,
                     height: 70,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00ADB5).withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF00ADB5).withOpacity(0.3)),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
                     ),
-                    child: const Icon(LucideIcons.chart_pie, color: Color(0xFF00ADB5), size: 30),
+                    child: Icon(LucideIcons.chart_pie, color: Theme.of(context).colorScheme.primary, size: 30),
                   ),
                   const SizedBox(height: 20),
                   Text('Belum Ada Transaksi Pengeluaran', style: TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.bold)),

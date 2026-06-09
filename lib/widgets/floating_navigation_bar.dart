@@ -98,8 +98,8 @@ class FloatingNavigationBar extends StatelessWidget {
     
     // Warna aktif & tidak aktif menyesuaikan kecerahan tema
     final activeColor = index == 1 || index == 0 
-        ? (isDark ? const Color(0xFF00F2FE) : const Color(0xFF00ADB5)) 
-        : const Color(0xFFF355DA);
+        ? Theme.of(context).colorScheme.primary 
+        : Theme.of(context).colorScheme.secondary;
     final inactiveColor = isDark ? Colors.white38 : Colors.black38;
 
     return InkWell(

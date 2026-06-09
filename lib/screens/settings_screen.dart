@@ -13,6 +13,7 @@ import '../services/database_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/glass_card.dart';
 import '../main.dart'; // To access biometricEnabledNotifier and notificationsEnabledNotifier
+import '../theme/design_system.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -67,10 +68,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00ADB5).withOpacity(0.12),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.image, color: Color(0xFF00ADB5), size: 22),
+                child: Icon(LucideIcons.image, color: Theme.of(context).colorScheme.primary, size: 22),
               ),
               title: Text(
                 'Pilih dari Galeri',
@@ -82,10 +83,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF355DA).withOpacity(0.12),
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.camera, color: Color(0xFFF355DA), size: 22),
+                child: Icon(LucideIcons.camera, color: Theme.of(context).colorScheme.secondary, size: 22),
               ),
               title: Text(
                 'Ambil Foto',
@@ -337,18 +338,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
+                            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                           ),
                         ),
                         child: _isUpdatingPhoto
-                            ? const CircleAvatar(
+                            ? CircleAvatar(
                                 radius: 26,
-                                backgroundColor: Color(0xFF0E1122),
+                                backgroundColor: const Color(0xFF0E1122),
                                 child: CircularProgressIndicator(
-                                  color: Color(0xFF00ADB5),
+                                  color: Theme.of(context).colorScheme.primary,
                                   strokeWidth: 2,
                                 ),
                               )
@@ -356,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 radius: 26,
                                 backgroundColor: const Color(0xFF0E1122),
                                 backgroundImage: _buildAvatarImage(user?.photoUrl),
-                                child: _buildAvatarChild(user),
+                                child: _buildAvatarChild(context, user),
                               ),
                       ),
                       // Badge edit kamera
@@ -367,8 +368,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           width: 22,
                           height: 22,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00ADB5), Color(0xFFF355DA)],
+                            gradient: LinearGradient(
+                              colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                             ),
                             shape: BoxShape.circle,
                             border: Border.all(color: isDark ? const Color(0xFF0E1122) : Colors.white, width: 2),
@@ -404,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text(
                           'Ubah foto profil',
                           style: TextStyle(
-                            color: const Color(0xFF00ADB5),
+                            color: Theme.of(context).colorScheme.primary,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -438,7 +439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Expanded(
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.fingerprint_pattern, color: Color(0xFF00ADB5), size: 22),
+                          Icon(LucideIcons.fingerprint_pattern, color: Theme.of(context).colorScheme.primary, size: 22),
                           const SizedBox(width: 15),
                           Expanded(
                             child: Column(
@@ -457,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 10),
                     Switch(
                       value: enabled,
-                      activeColor: const Color(0xFF00ADB5),
+                      activeColor: Theme.of(context).colorScheme.primary,
                       onChanged: (value) async {
                         if (value) {
                           final success = await BiometricService().authenticate();
@@ -508,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Expanded(
                           child: Row(
                             children: [
-                              const Icon(LucideIcons.bell_ring, color: Color(0xFFF355DA), size: 22),
+                              Icon(LucideIcons.bell_ring, color: Theme.of(context).colorScheme.secondary, size: 22),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: Column(
@@ -531,7 +532,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(width: 10),
                         Switch(
                           value: enabled,
-                          activeColor: const Color(0xFFF355DA),
+                          activeColor: Theme.of(context).colorScheme.secondary,
                           onChanged: (value) async {
                             notificationsEnabledNotifier.value = value;
                             await DatabaseService().saveSetting('notifications_enabled', value ? 'true' : 'false');
@@ -563,7 +564,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Expanded(
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.palette, color: Color(0xFF00ADB5), size: 22),
+                          Icon(LucideIcons.palette, color: Theme.of(context).colorScheme.primary, size: 22),
                           const SizedBox(width: 15),
                           Expanded(
                             child: Column(
@@ -749,15 +750,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // Helper: Widget inisial huruf jika tidak ada foto
-  Widget? _buildAvatarChild(UserSession? user) {
+  Widget? _buildAvatarChild(BuildContext context, UserSession? user) {
     if (user?.photoUrl != null) return null;
     final letter = user?.displayName.isNotEmpty == true
         ? user!.displayName.substring(0, 1).toUpperCase()
         : 'U';
     return Text(
       letter,
-      style: const TextStyle(
-        color: Color(0xFF00ADB5),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.primary,
         fontWeight: FontWeight.bold,
         fontSize: 20,
       ),

@@ -5,6 +5,7 @@ import '../widgets/text_style_helper.dart';
 import '../widgets/liquid_glass_background.dart';
 import '../widgets/glass_card.dart';
 import '../services/auth_service.dart';
+import '../theme/design_system.dart';
 
 class RegisterScreen extends StatefulWidget {
   final VoidCallback onRegisterSuccess;
@@ -106,8 +107,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 65,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00ADB5), Color(0xFF7000FF)],
+                  gradient: LinearGradient(
+                    colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                   ),
                 ),
                 child: Padding(
@@ -221,8 +222,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         height: 50,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00ADB5), Color(0xFF7000FF)],
+                          gradient: LinearGradient(
+                            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                           ),
                         ),
                         child: Center(
@@ -253,10 +254,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onTap: () {
                       Navigator.pop(context);
                     },
-                    child: const Text(
+                    child: Text(
                       'Masuk Di Sini',
                       style: TextStyle(
-                        color: Color(0xFF00ADB5),
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),

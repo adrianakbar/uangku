@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:uangku/theme/design_system.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/glass_card.dart';
@@ -38,13 +39,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   ];
 
   final Map<String, Map<String, dynamic>> _catStyles = {
-    'F&B': {'color': const Color(0xFFFFB300), 'icon': LucideIcons.coffee},
-    'Transport': {'color': const Color(0xFF00E676), 'icon': LucideIcons.car},
-    'Hiburan': {'color': const Color(0xFFE50914), 'icon': LucideIcons.play},
-    'Shopping': {'color': const Color(0xFF00F2FE), 'icon': LucideIcons.shopping_bag},
-    'Tagihan': {'color': const Color(0xFFFF5252), 'icon': LucideIcons.receipt},
-    'Gaji': {'color': const Color(0xFF00E676), 'icon': LucideIcons.arrow_up_right},
-    'Lainnya': {'color': const Color(0xFFA5B4FC), 'icon': LucideIcons.ellipsis},
+    'F&B': {'color': AppColors.secondary, 'icon': LucideIcons.coffee},
+    'Transport': {'color': AppColors.secondary, 'icon': LucideIcons.car},
+    'Hiburan': {'color': AppColors.secondary, 'icon': LucideIcons.play},
+    'Shopping': {'color': AppColors.secondary, 'icon': LucideIcons.shopping_bag},
+    'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
+    'Gaji': {'color': AppColors.secondary, 'icon': LucideIcons.arrow_up_right},
+    'Lainnya': {'color': AppColors.secondary, 'icon': LucideIcons.ellipsis},
   };
 
   @override
@@ -395,11 +396,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
         // 5. Daftar Transaksi Terkelompok atau Empty State
         if (_isLoading)
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 50),
-                child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+                padding: const EdgeInsets.symmetric(vertical: 50),
+                child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           )
@@ -416,11 +417,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00ADB5).withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00ADB5).withOpacity(0.3)),
+                        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
                       ),
-                      child: const Icon(LucideIcons.search_x, color: Color(0xFF00ADB5), size: 30),
+                      child: Icon(LucideIcons.search_x, color: Theme.of(context).colorScheme.primary, size: 30),
                     ),
                     const SizedBox(height: 20),
                     Text('Transaksi Tidak Ditemukan', style: TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.bold)),

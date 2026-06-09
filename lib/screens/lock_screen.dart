@@ -81,23 +81,23 @@ class _LockScreenState extends State<LockScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00ADB5).withOpacity(0.12),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF00ADB5).withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00ADB5).withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.fingerprint_pattern,
-                  color: Color(0xFF00ADB5),
+                  color: Theme.of(context).colorScheme.primary,
                   size: 48,
                 ),
               ),
@@ -149,7 +149,7 @@ class _LockScreenState extends State<LockScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: (_authFailed ? const Color(0xFFFF5252) : const Color(0xFF00ADB5)).withOpacity(0.15),
+                        color: (_authFailed ? const Color(0xFFFF5252) : Theme.of(context).colorScheme.primary).withOpacity(0.15),
                         blurRadius: 15,
                         spreadRadius: 1,
                       ),
@@ -162,17 +162,17 @@ class _LockScreenState extends State<LockScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _isAuthenticating
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                  color: Color(0xFF00ADB5),
+                                  color: Theme.of(context).colorScheme.primary,
                                   strokeWidth: 2,
                                 ),
                               )
                             : Icon(
                                 _authFailed ? LucideIcons.refresh_cw : LucideIcons.shield_check,
-                                color: _authFailed ? const Color(0xFFFF5252) : const Color(0xFF00ADB5),
+                                color: _authFailed ? const Color(0xFFFF5252) : Theme.of(context).colorScheme.primary,
                                 size: 20,
                               ),
                         const SizedBox(width: 12),

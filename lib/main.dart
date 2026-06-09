@@ -21,6 +21,7 @@ import 'services/widget_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'firebase_options.dart';
+import 'package:uangku/theme/design_system.dart';
 
 // Notifikasi Nilai Global Reaktif
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
@@ -62,26 +63,8 @@ class UangkuApp extends StatelessWidget {
           title: 'Uangku',
           debugShowCheckedModeBanner: false,
           themeMode: currentThemeMode,
-          theme: ThemeData(
-            brightness: Brightness.light,
-            fontFamily: font,
-            useMaterial3: true,
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF00ADB5),
-              secondary: Color(0xFFF355DA),
-              surface: Color(0xFFF4F6F9),
-            ),
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            fontFamily: font,
-            useMaterial3: true,
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF00F2FE),
-              secondary: Color(0xFFF355DA),
-              surface: Color(0xFF0E1122),
-            ),
-          ),
+          theme: AppTheme.lightTheme(fontFamily: font),
+          darkTheme: AppTheme.darkTheme(fontFamily: font),
           home: const MainNavigationShell(),
         );
       },
@@ -178,11 +161,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final authService = AuthService();
 
     if (_isInitializing) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.transparent,
         body: LiquidGlassBackground(
           child: Center(
-            child: CircularProgressIndicator(color: Color(0xFF00ADB5)),
+            child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
           ),
         ),
       );
