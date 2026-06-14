@@ -97,7 +97,7 @@ class AuthService {
       final googleUser = await _googleSignIn.authenticate();
 
       // Dapatkan token autentikasi Google untuk Firebase
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
 
       // Buat kredensial Firebase Auth dengan token Google (cukup idToken untuk verifikasi identitas)
       final credential = GoogleAuthProvider.credential(

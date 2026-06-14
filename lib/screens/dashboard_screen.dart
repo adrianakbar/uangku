@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/text_style_helper.dart';
 import '../widgets/expandable_text.dart';
+import '../widgets/add_transaction_sheet.dart';
 import '../main.dart'; // Akses themeNotifier global
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -183,6 +184,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _showEditTransactionForm(Map<String, dynamic> tx) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddTransactionSheet(
+        transaction: tx,
+        onTransactionSaved: _loadData,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -286,7 +299,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ? Center(
                   child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
                 )
-              : _RecentTransactionsList(transactions: _transactions),
+              : _RecentTransactionsList(
+                  transactions: _transactions,
+                  onTransactionTap: _showEditTransactionForm,
+                  onAddTransactionPressed: widget.onAddTransactionPressed,
+                ),
           const SizedBox(height: 100), // Spasi agar tidak tertutup Bottom Bar
         ],
       ),
@@ -419,6 +436,19 @@ class _FilterChipBar extends StatelessWidget {
 class _DashboardHeader extends StatelessWidget {
   const _DashboardHeader();
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 15) {
+      return 'Good Afternoon';
+    } else if (hour >= 15 && hour < 18) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  }
+
   // Helper: Menentukan sumber gambar avatar
   ImageProvider? _buildAvatarImage(String? photoUrl) {
     if (photoUrl == null) return null;
@@ -481,19 +511,20 @@ class _DashboardHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Halo, $displayName',
+                      _getGreeting(),
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      displayName,
                       style: plusJakartaStyle(
                         color: textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Kelola uangmu dengan bijak!',
-                      style: TextStyle(
-                        color: subTextColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -612,7 +643,7 @@ class _BalanceCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       LucideIcons.arrow_down_left,
                       color: AppColors.danger,
                       size: 14,
@@ -867,8 +898,14 @@ class _WaveChartPainter extends CustomPainter {
 // --- WIDGET DAFTAR RIWAYAT TRANSAKSI ---
 class _RecentTransactionsList extends StatelessWidget {
   final List<Map<String, dynamic>> transactions;
+  final ValueChanged<Map<String, dynamic>>? onTransactionTap;
+  final VoidCallback? onAddTransactionPressed;
 
-  const _RecentTransactionsList({required this.transactions});
+  const _RecentTransactionsList({
+    required this.transactions,
+    this.onTransactionTap,
+    this.onAddTransactionPressed,
+  });
 
   Map<String, dynamic> _getCategoryStyle(String name) {
     switch (name) {
@@ -944,16 +981,52 @@ class _RecentTransactionsList extends StatelessWidget {
 
     if (transactions.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Center(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: GlassCard(
+          borderRadius: 24,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
           child: Column(
             children: [
-              const Icon(LucideIcons.receipt, color: Colors.white24, size: 40),
-              const SizedBox(height: 12),
-              Text(
-                'Belum ada transaksi pada periode ini.',
-                style: TextStyle(color: deepFadedTextColor, fontSize: 13),
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                ),
+                child: Icon(LucideIcons.receipt, color: Theme.of(context).colorScheme.primary, size: 24),
               ),
+              const SizedBox(height: 16),
+              Text(
+                'Belum Ada Transaksi',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Belum ada riwayat transaksi dicatat pada periode ini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: deepFadedTextColor, fontSize: 12, height: 1.4),
+              ),
+              if (onAddTransactionPressed != null) ...[
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: onAddTransactionPressed,
+                  icon: const Icon(LucideIcons.plus, size: 16),
+                  label: const Text('Tambah Transaksi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -976,112 +1049,118 @@ class _RecentTransactionsList extends StatelessWidget {
         final iconColor = style['color'] as Color;
         final iconData = style['icon'] as IconData;
 
-        return GlassCard(
-          borderRadius: 20,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              // Glowing Icon Badge
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.12),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: iconColor.withOpacity(0.3),
-                    width: 1.2,
-                  ),
-                ),
-                child: Icon(iconData, color: iconColor, size: 20),
-              ),
-              const SizedBox(width: 15),
-              // Detail Deskripsi
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ExpandableText(
-                      text: item['title'] as String,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: GestureDetector(
+            onTap: onTransactionTap != null ? () => onTransactionTap!(item) : null,
+            child: GlassCard(
+              borderRadius: 20,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  // Glowing Icon Badge
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: iconColor.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: iconColor.withOpacity(0.3),
+                        width: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Wrap Widget yang 100% Overflow-Proof untuk detail tanggal & sumber dana
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
-                      runSpacing: 4,
+                    child: Icon(iconData, color: iconColor, size: 20),
+                  ),
+                  const SizedBox(width: 15),
+                  // Detail Deskripsi
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _formatFriendlyDate(item['date'] as String),
+                        ExpandableText(
+                          text: item['title'] as String,
                           style: TextStyle(
-                            color: deepFadedTextColor,
-                            fontSize: 11,
+                            color: textColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Icon(
-                          Icons.fiber_manual_record,
-                          size: 4,
-                          color: isDark ? Colors.white24 : Colors.black26,
-                        ),
-                        Text(
-                          item['wallet'] as String,
-                          style: TextStyle(
-                            color: deepFadedTextColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 4),
+                        // Wrap Widget yang 100% Overflow-Proof untuk detail tanggal & sumber dana
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            Text(
+                              _formatFriendlyDate(item['date'] as String),
+                              style: TextStyle(
+                                color: deepFadedTextColor,
+                                fontSize: 11,
+                              ),
+                            ),
+                            Icon(
+                              Icons.fiber_manual_record,
+                              size: 4,
+                              color: isDark ? Colors.white24 : Colors.black26,
+                            ),
+                            Text(
+                              item['wallet'] as String,
+                              style: TextStyle(
+                                color: deepFadedTextColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Jumlah Nominal
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${isExpense ? "-" : "+"}${_formatRupiah(amountVal)}',
-                    style: TextStyle(
-                      color: isExpense
-                          ? AppColors.danger
-                          : AppColors.success,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.05,
+                  const SizedBox(width: 12),
+                  // Jumlah Nominal
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${isExpense ? "-" : "+"}${_formatRupiah(amountVal)}',
+                        style: TextStyle(
+                          color: isExpense
+                              ? AppColors.danger
+                              : AppColors.success,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      categoryName,
-                      style: TextStyle(
-                        color: isDark
-                            ? AppColors.textDarkTertiary
-                            : AppColors.textLightSecondary,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : Colors.black).withOpacity(
+                            0.05,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          categoryName,
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.textDarkTertiary
+                                : AppColors.textLightSecondary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },

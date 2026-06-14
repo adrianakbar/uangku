@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:uangku/services/biometric_service.dart';
 import 'package:uangku/services/database_service.dart';
 import 'widgets/liquid_glass_background.dart';
-import 'widgets/glass_card.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/floating_navigation_bar.dart';
 import 'screens/dashboard_screen.dart';

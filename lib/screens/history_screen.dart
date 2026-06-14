@@ -23,9 +23,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _allTransactions = [];
   
-  // State Filter
+  // State Filter & Pagination
   String _searchQuery = '';
   String _selectedCategory = 'Semua';
+  int _currentPage = 1;
+  static const int _pageSize = 8;
 
   final List<String> _categories = [
     'Semua',
@@ -226,9 +228,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final textInputBorderColor = isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
 
     final filtered = _filteredTransactions;
-    final grouped = _groupTransactions(filtered);
+    final totalItems = filtered.length;
+    final totalPages = (totalItems / _pageSize).ceil();
 
-    // Hitung ringkasan dinamis dari list hasil filter saat ini
+    // Safety checks for _currentPage range
+    if (_currentPage > totalPages && totalPages > 0) {
+      _currentPage = totalPages;
+    } else if (_currentPage < 1) {
+      _currentPage = 1;
+    }
+
+    final startIndex = (_currentPage - 1) * _pageSize;
+    final endIndex = startIndex + _pageSize;
+    final paginatedTransactions = filtered.isEmpty
+        ? <Map<String, dynamic>>[]
+        : filtered.sublist(
+            startIndex,
+            endIndex > filtered.length ? filtered.length : endIndex,
+          );
+
+    final grouped = _groupTransactions(paginatedTransactions);
+
+    // Hitung ringkasan dinamis dari list hasil filter saat ini (tetap hitung dari seluruh filter untuk ringkasan total)
     double currentExpense = 0;
     for (var tx in filtered) {
       final amount = tx['amount'] as double;
@@ -319,6 +340,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 onChanged: (val) {
                   setState(() {
                     _searchQuery = val;
+                    _currentPage = 1;
                   });
                 },
                 style: TextStyle(color: textColor, fontSize: 14),
@@ -373,6 +395,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         if (val != null) {
                           setState(() {
                             _selectedCategory = val;
+                            _currentPage = 1;
                           });
                         }
                       },
@@ -549,6 +572,107 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   }
                 },
                 childCount: flatList.length,
+              ),
+            ),
+          ),
+        
+        // 6. Kontrol Navigasi Halaman (Pagination)
+        if (totalPages > 1)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              child: GlassCard(
+                borderRadius: 20,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Previous Page Button
+                    IconButton(
+                      icon: const Icon(LucideIcons.chevron_left),
+                      color: _currentPage > 1 ? textColor : subTextColor.withOpacity(0.3),
+                      onPressed: _currentPage > 1
+                          ? () {
+                              setState(() {
+                                _currentPage--;
+                              });
+                            }
+                          : null,
+                    ),
+
+                    // Page Pill Numbers Row
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(totalPages, (index) {
+                            final pageNum = index + 1;
+                            final isCurrent = pageNum == _currentPage;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _currentPage = pageNum;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  gradient: isCurrent
+                                      ? AppColors.primaryGradient(isDark)
+                                      : null,
+                                  color: isCurrent
+                                      ? null
+                                      : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isCurrent
+                                        ? Colors.transparent
+                                        : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05)),
+                                  ),
+                                  boxShadow: isCurrent
+                                      ? [
+                                          BoxShadow(
+                                            color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  '$pageNum',
+                                  style: TextStyle(
+                                    color: isCurrent ? Colors.white : textColor,
+                                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+
+                    // Next Page Button
+                    IconButton(
+                      icon: const Icon(LucideIcons.chevron_right),
+                      color: _currentPage < totalPages ? textColor : subTextColor.withOpacity(0.3),
+                      onPressed: _currentPage < totalPages
+                          ? () {
+                              setState(() {
+                                _currentPage++;
+                              });
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

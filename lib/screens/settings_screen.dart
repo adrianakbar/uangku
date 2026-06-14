@@ -458,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 10),
                     Switch(
                       value: enabled,
-                      activeColor: Theme.of(context).colorScheme.primary,
+                      activeThumbColor: Theme.of(context).colorScheme.primary,
                       onChanged: (value) async {
                         if (value) {
                           final success = await BiometricService().authenticate();
@@ -532,7 +532,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(width: 10),
                         Switch(
                           value: enabled,
-                          activeColor: Theme.of(context).colorScheme.secondary,
+                          activeThumbColor: Theme.of(context).colorScheme.secondary,
                           onChanged: (value) async {
                             notificationsEnabledNotifier.value = value;
                             await DatabaseService().saveSetting('notifications_enabled', value ? 'true' : 'false');
