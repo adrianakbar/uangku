@@ -51,6 +51,7 @@ dependencies:
   file_picker: ^11.0.2
   flutter_timezone: ^5.1.0
   flutter_displaymode: ^0.7.0
+  http: ^1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

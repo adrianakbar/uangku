@@ -3,17 +3,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:sqflite/sqflite.dart' show getDatabasesPath;
 import '../services/auth_service.dart';
 import '../services/biometric_service.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/glass_card.dart';
 import '../main.dart'; // To access biometricEnabledNotifier and notificationsEnabledNotifier
-import '../theme/design_system.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onLogout;

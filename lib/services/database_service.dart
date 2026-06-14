@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:http/http.dart' as http;
 import 'widget_service.dart';
 
 class DatabaseService {
@@ -10,6 +12,7 @@ class DatabaseService {
   DatabaseService._internal();
 
   static final ValueNotifier<int> changeNotifier = ValueNotifier<int>(0);
+  static const String _apiBase = 'https://api.adrianakbar.my.id/api';
 
   Database? _database;
 
@@ -114,6 +117,18 @@ class DatabaseService {
   // --- METHODS UNTUK USER ---
 
   Future<int> insertUser(Map<String, dynamic> userRow) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$_apiBase/users'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(userRow),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error insertUser: $e');
+    }
     final db = await database;
     return await db.insert(
       'users',
@@ -124,6 +139,19 @@ class DatabaseService {
 
   // Update hanya kolom photo_url untuk user tertentu
   Future<int> updateUserPhoto(String email, String? photoUrl) async {
+    try {
+      final user = await getUserByEmail(email);
+      if (user != null) {
+        user['photo_url'] = photoUrl;
+        await http.post(
+          Uri.parse('$_apiBase/users'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(user),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updateUserPhoto: $e');
+    }
     final db = await database;
     return await db.update(
       'users',
@@ -134,6 +162,14 @@ class DatabaseService {
   }
 
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+    try {
+      final res = await http.get(Uri.parse('$_apiBase/users/${Uri.encodeComponent(email)}'));
+      if (res.statusCode == 200) {
+        return json.decode(res.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('Error getUserByEmail: $e');
+    }
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'users',
@@ -150,38 +186,43 @@ class DatabaseService {
   // --- METHODS UNTUK TRANSAKSI ---
 
   Future<int> insertTransaction(Map<String, dynamic> transactionRow) async {
-    final db = await database;
-    final res = await db.insert(
-      'transactions',
-      transactionRow,
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
-    changeNotifier.value++;
-    WidgetService().updateWidget();
-    return res;
+    try {
+      final res = await http.post(
+        Uri.parse('$_apiBase/transactions'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(transactionRow),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        changeNotifier.value++;
+        WidgetService().updateWidget();
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error insertTransaction: $e');
+    }
+    return 0;
   }
 
   Future<int> updateTransaction(int id, Map<String, dynamic> transactionRow) async {
-    final db = await database;
-    final res = await db.update(
-      'transactions',
-      transactionRow,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    changeNotifier.value++;
-    WidgetService().updateWidget();
-    return res;
+    try {
+      final res = await http.put(
+        Uri.parse('$_apiBase/transactions/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(transactionRow),
+      );
+      if (res.statusCode == 200) {
+        changeNotifier.value++;
+        WidgetService().updateWidget();
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error updateTransaction: $e');
+    }
+    return 0;
   }
 
   Future<List<Map<String, dynamic>>> getTransactionsForUser(String email) async {
-    final db = await database;
-    return await db.query(
-      'transactions',
-      where: 'LOWER(user_email) = ?',
-      whereArgs: [email.trim().toLowerCase()],
-      orderBy: 'date DESC',
-    );
+    return getTransactionsForUserFiltered(email);
   }
 
   // Ambil transaksi dengan filter rentang tanggal
@@ -190,33 +231,27 @@ class DatabaseService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final db = await database;
-    final emailClean = email.trim().toLowerCase();
-
-    if (startDate == null && endDate == null) {
-      return getTransactionsForUser(email);
+    try {
+      String url = '$_apiBase/transactions?email=${Uri.encodeComponent(email)}';
+      if (startDate != null) {
+        url += '&startDate=${Uri.encodeComponent(startDate.toIso8601String())}';
+      }
+      if (endDate != null) {
+        url += '&endDate=${Uri.encodeComponent(endDate.toIso8601String())}';
+      }
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final list = json.decode(res.body) as List<dynamic>;
+        return list.map((item) {
+          final map = Map<String, dynamic>.from(item as Map);
+          map['amount'] = (map['amount'] as num).toDouble();
+          return map;
+        }).toList();
+      }
+    } catch (e) {
+      debugPrint('Error getTransactionsForUserFiltered: $e');
     }
-
-    String whereClause = 'LOWER(user_email) = ?';
-    List<dynamic> args = [emailClean];
-
-    if (startDate != null) {
-      whereClause += ' AND date >= ?';
-      args.add(startDate.toIso8601String());
-    }
-    if (endDate != null) {
-      // Tambah 1 hari agar endDate inklusif
-      final inclusiveEnd = endDate.add(const Duration(days: 1));
-      whereClause += ' AND date < ?';
-      args.add(inclusiveEnd.toIso8601String());
-    }
-
-    return await db.query(
-      'transactions',
-      where: whereClause,
-      whereArgs: args,
-      orderBy: 'date DESC',
-    );
+    return [];
   }
 
   // Hitung ringkasan (saldo, pemasukan, pengeluaran) dengan filter rentang tanggal
@@ -225,221 +260,124 @@ class DatabaseService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    if (startDate == null && endDate == null) {
-      return getSummaryForUser(email);
+    try {
+      String url = '$_apiBase/summary?email=${Uri.encodeComponent(email)}';
+      if (startDate != null) {
+        url += '&startDate=${Uri.encodeComponent(startDate.toIso8601String())}';
+      }
+      if (endDate != null) {
+        url += '&endDate=${Uri.encodeComponent(endDate.toIso8601String())}';
+      }
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body) as Map<String, dynamic>;
+        return {
+          'balance': (data['balance'] as num).toDouble(),
+          'income': (data['income'] as num).toDouble(),
+          'expense': (data['expense'] as num).toDouble(),
+        };
+      }
+    } catch (e) {
+      debugPrint('Error getSummaryForUserFiltered: $e');
     }
-
-    final db = await database;
-    final emailClean = email.trim().toLowerCase();
-
-    String dateFilter = '';
-    List<dynamic> incomeArgs = [emailClean];
-    List<dynamic> expenseArgs = [emailClean];
-
-    if (startDate != null) {
-      dateFilter += ' AND date >= ?';
-      incomeArgs.add(startDate.toIso8601String());
-      expenseArgs.add(startDate.toIso8601String());
-    }
-    if (endDate != null) {
-      final inclusiveEnd = endDate.add(const Duration(days: 1));
-      dateFilter += ' AND date < ?';
-      incomeArgs.add(inclusiveEnd.toIso8601String());
-      expenseArgs.add(inclusiveEnd.toIso8601String());
-    }
-
-    final incomeQuery = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 0$dateFilter',
-      incomeArgs,
-    );
-    final double totalIncome = (incomeQuery.first['total'] as num?)?.toDouble() ?? 0.0;
-
-    final expenseQuery = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 1$dateFilter',
-      expenseArgs,
-    );
-    final double totalExpense = (expenseQuery.first['total'] as num?)?.toDouble() ?? 0.0;
-
-    return {
-      'balance': totalIncome - totalExpense,
-      'income': totalIncome,
-      'expense': totalExpense,
-    };
+    return {'balance': 0.0, 'income': 0.0, 'expense': 0.0};
   }
 
   Future<int> deleteTransaction(int id) async {
-    final db = await database;
-    final res = await db.delete(
-      'transactions',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    changeNotifier.value++;
-    WidgetService().updateWidget();
-    return res;
+    try {
+      final res = await http.delete(Uri.parse('$_apiBase/transactions/$id'));
+      if (res.statusCode == 200) {
+        changeNotifier.value++;
+        WidgetService().updateWidget();
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error deleteTransaction: $e');
+    }
+    return 0;
   }
 
   // Menghitung Saldo Bersih, Total Pemasukan, dan Total Pengeluaran
   Future<Map<String, double>> getSummaryForUser(String email) async {
-    final db = await database;
-    final emailClean = email.trim().toLowerCase();
-
-    // Hitung Total Pemasukan (is_expense = 0)
-    final List<Map<String, dynamic>> incomeQuery = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 0',
-      [emailClean],
-    );
-    final double totalIncome = (incomeQuery.first['total'] as num?)?.toDouble() ?? 0.0;
-
-    // Hitung Total Pengeluaran (is_expense = 1)
-    final List<Map<String, dynamic>> expenseQuery = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE LOWER(user_email) = ? AND is_expense = 1',
-      [emailClean],
-    );
-    final double totalExpense = (expenseQuery.first['total'] as num?)?.toDouble() ?? 0.0;
-
-    final double balance = totalIncome - totalExpense;
-
-    return {
-      'balance': balance,
-      'income': totalIncome,
-      'expense': totalExpense,
-    };
+    return getSummaryForUserFiltered(email);
   }
 
   // Melakukan Seed Data Awal untuk demo yang indah agar dasbor tidak kosong
   Future<void> seedDefaultDataForUser(String email) async {
-    final db = await database;
-    final emailClean = email.trim().toLowerCase();
-    final key = 'seeded_$emailClean';
-
-    // 1. Cek apakah user ini sudah pernah di-seed sebelumnya
-    final isSeeded = await getSetting(key);
-    if (isSeeded == 'true') return; // Sudah pernah di-seed, lewati
-
-    // 2. Cek tambahan cadangan: jika user memiliki transaksi aktif di DB, tandai sudah di-seed & lewati
-    final List<Map<String, dynamic>> existing = await db.query(
-      'transactions',
-      where: 'LOWER(user_email) = ?',
-      whereArgs: [emailClean],
-      limit: 1,
-    );
-
-    if (existing.isNotEmpty) {
-      // Simpan status seeded agar tidak memeriksa transaksi lagi di masa depan
-      await saveSetting(key, 'true');
-      return;
-    }
-
-    final now = DateTime.now();
-    final todayStr = now.toIso8601String();
-    final yesterdayStr = now.subtract(const Duration(days: 1)).toIso8601String();
-    final twoDaysAgoStr = now.subtract(const Duration(days: 2)).toIso8601String();
-    final fourDaysAgoStr = now.subtract(const Duration(days: 4)).toIso8601String();
-
-    final List<Map<String, dynamic>> defaultTransactions = [
-      {
-        'title': 'Kopi Cappuccino Premium',
-        'category': 'F&B',
-        'amount': 35000.0,
-        'is_expense': 1,
-        'wallet': 'Cash',
-        'date': todayStr,
-        'user_email': email,
-      },
-      {
-        'title': 'Gaji Pokok Bulanan',
-        'category': 'Gaji',
-        'amount': 12300000.0,
-        'is_expense': 0,
-        'wallet': 'BCA Savings',
-        'date': yesterdayStr,
-        'user_email': email,
-      },
-      {
-        'title': 'Langganan Netflix Premium',
-        'category': 'Hiburan',
-        'amount': 186000.0,
-        'is_expense': 1,
-        'wallet': 'Gopay Wallet',
-        'date': twoDaysAgoStr,
-        'user_email': email,
-      },
-      {
-        'title': 'Beli Bahan Makanan Mingguan',
-        'category': 'Shopping',
-        'amount': 3664000.0,
-        'is_expense': 1,
-        'wallet': 'Cash',
-        'date': fourDaysAgoStr,
-        'user_email': email,
-      },
-    ];
-
-    final batch = db.batch();
-    for (var tx in defaultTransactions) {
-      batch.insert('transactions', tx);
-    }
-    await batch.commit(noResult: true);
-
-    // Simpan tanda bahwa user ini sudah berhasil di-seed
-    await saveSetting(key, 'true');
+    // Noop - Data is managed on the server
   }
 
   // --- METHODS UNTUK ANGGARAN (BUDGETS) ---
 
   Future<int> insertOrUpdateBudget(String category, double amount, String email) async {
-    final db = await database;
-    final res = await db.insert(
-      'budgets',
-      {
-        'category': category,
-        'amount': amount,
-        'user_email': email.trim().toLowerCase(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    changeNotifier.value++;
-    return res;
+    try {
+      final res = await http.post(
+        Uri.parse('$_apiBase/budgets'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'category': category,
+          'amount': amount,
+          'user_email': email,
+        }),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        changeNotifier.value++;
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error insertOrUpdateBudget: $e');
+    }
+    return 0;
   }
 
   Future<List<Map<String, dynamic>>> getBudgetsForUser(String email) async {
-    final db = await database;
-    return await db.query(
-      'budgets',
-      where: 'LOWER(user_email) = ?',
-      whereArgs: [email.trim().toLowerCase()],
-    );
+    try {
+      final res = await http.get(Uri.parse('$_apiBase/budgets?email=${Uri.encodeComponent(email)}'));
+      if (res.statusCode == 200) {
+        final list = json.decode(res.body) as List<dynamic>;
+        return list.map((item) {
+          final map = Map<String, dynamic>.from(item as Map);
+          map['amount'] = (map['amount'] as num).toDouble();
+          return map;
+        }).toList();
+      }
+    } catch (e) {
+      debugPrint('Error getBudgetsForUser: $e');
+    }
+    return [];
   }
 
   Future<int> deleteBudget(String category, String email) async {
-    final db = await database;
-    final res = await db.delete(
-      'budgets',
-      where: 'category = ? AND LOWER(user_email) = ?',
-      whereArgs: [category, email.trim().toLowerCase()],
-    );
-    changeNotifier.value++;
-    return res;
+    try {
+      final res = await http.delete(
+        Uri.parse('$_apiBase/budgets?category=${Uri.encodeComponent(category)}&email=${Uri.encodeComponent(email)}')
+      );
+      if (res.statusCode == 200) {
+        changeNotifier.value++;
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error deleteBudget: $e');
+    }
+    return 0;
   }
 
   // Menghitung total pengeluaran per kategori untuk Analisis
   Future<Map<String, double>> getExpenseByCategory(String email) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT category, SUM(amount) as total 
-      FROM transactions 
-      WHERE LOWER(user_email) = ? AND is_expense = 1
-      GROUP BY category
-    ''', [email.trim().toLowerCase()]);
-
-    final Map<String, double> result = {};
-    for (var row in maps) {
-      final category = row['category'] as String;
-      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
-      result[category] = total;
+    try {
+      final res = await http.get(Uri.parse('$_apiBase/budgets/expense-by-category?email=${Uri.encodeComponent(email)}'));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body) as Map<String, dynamic>;
+        final Map<String, double> result = {};
+        data.forEach((key, val) {
+          result[key] = (val as num).toDouble();
+        });
+        return result;
+      }
+    } catch (e) {
+      debugPrint('Error getExpenseByCategory: $e');
     }
-    return result;
+    return {};
   }
 
   // --- METHODS UNTUK PENGATURAN & SESI ---
