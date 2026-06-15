@@ -132,7 +132,7 @@ class _LiquidGlassBackgroundState extends State<LiquidGlassBackground>
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
               child: Container(
-                color: isDark ? Colors.black.withOpacity(0.15) : Colors.white.withOpacity(0.3), // Milky vs Dark overlay
+                color: isDark ? Colors.black.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.3), // Milky vs Dark overlay
               ),
             ),
           ),

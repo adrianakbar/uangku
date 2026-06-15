@@ -28,6 +28,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     'Hiburan': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.play},
     'Shopping': {'color': AppColors.primaryLight, 'icon': LucideIcons.shopping_bag},
     'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
+    'Olahraga': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.dumbbell},
     'Lainnya': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.ellipsis},
   };
 
@@ -171,9 +172,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     width: 70,
                     height: 70,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Icon(LucideIcons.chart_pie, color: Theme.of(context).colorScheme.primary, size: 30),
                   ),
@@ -269,9 +270,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: color.withOpacity(0.12),
+                              color: color.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
-                              border: Border.all(color: color.withOpacity(0.3)),
+                              border: Border.all(color: color.withValues(alpha: 0.3)),
                             ),
                             child: Icon(icon, color: color, size: 18),
                           ),
@@ -295,7 +296,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: percent,
-                          backgroundColor: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
+                          backgroundColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
                           valueColor: AlwaysStoppedAnimation<Color>(color),
                           minHeight: 6,
                         ),

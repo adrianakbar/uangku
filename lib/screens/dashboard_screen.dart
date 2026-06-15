@@ -375,23 +375,23 @@ class _FilterChipBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? LinearGradient(
-                          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withOpacity(0.7)],
+                          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)],
                         )
                       : null,
                   color: isSelected
                       ? null
-                      : (isDark ? Colors.white.withOpacity(0.07) : Colors.black.withOpacity(0.05)),
+                      : (isDark ? Colors.white.withValues(alpha: 0.07) : Colors.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : (isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08)),
+                        : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
                     width: 1,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           )
@@ -463,7 +463,7 @@ class _DashboardHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
     final subTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
-    final buttonBg = (isDark ? Colors.white : Colors.black).withOpacity(0.06);
+    final buttonBg = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06);
     final buttonIconColor = isDark ? Colors.white : AppColors.textLightPrimary;
 
     final user = AuthService().currentUser;
@@ -634,10 +634,10 @@ class _BalanceCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.12),
+                  color: AppColors.danger.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.danger.withOpacity(0.3),
+                    color: AppColors.danger.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -735,8 +735,8 @@ class _LiquidAnalyticsWave extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.06,
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.06,
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -811,8 +811,8 @@ class _WaveChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          primaryColor.withOpacity(0.35),
-          secondaryColor.withOpacity(0.0),
+          primaryColor.withValues(alpha: 0.35),
+          secondaryColor.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
@@ -922,6 +922,8 @@ class _RecentTransactionsList extends StatelessWidget {
         };
       case 'Tagihan':
         return {'icon': LucideIcons.receipt, 'color': AppColors.secondary};
+      case 'Olahraga':
+        return {'icon': LucideIcons.dumbbell, 'color': AppColors.tertiaryLight};
       case 'Gaji':
         return {'icon': LucideIcons.banknote, 'color': AppColors.primaryLight};
       default:
@@ -991,9 +993,9 @@ class _RecentTransactionsList extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                 ),
                 child: Icon(LucideIcons.receipt, color: Theme.of(context).colorScheme.primary, size: 24),
               ),
@@ -1063,10 +1065,10 @@ class _RecentTransactionsList extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: iconColor.withOpacity(0.12),
+                      color: iconColor.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: iconColor.withOpacity(0.3),
+                        color: iconColor.withValues(alpha: 0.3),
                         width: 1.2,
                       ),
                     ),
@@ -1140,8 +1142,8 @@ class _RecentTransactionsList extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black).withOpacity(
-                            0.05,
+                          color: (isDark ? Colors.white : Colors.black).withValues(
+                            alpha: 0.05,
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),

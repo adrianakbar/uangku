@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isDark ? const Color(0xFF151929) : Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.07),
+            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.07),
           ),
         ),
         child: Column(
@@ -65,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(LucideIcons.image, color: Theme.of(context).colorScheme.primary, size: 22),
@@ -80,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.12),
+                  color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(LucideIcons.camera, color: Theme.of(context).colorScheme.secondary, size: 22),
@@ -582,10 +582,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: 36,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04),
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.06),
+                          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06),
                         ),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -668,10 +668,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04),
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.06),
+                      color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06),
                     ),
                   ),
                   child: DropdownButtonHideUnderline(

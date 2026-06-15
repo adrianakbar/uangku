@@ -87,8 +87,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Warna teks dinamis
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
-    final inputBg = isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03);
-    final inputBorder = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
+    final inputBg = isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03);
+    final inputBorder = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08);
 
     return LiquidGlassBackground(
       child: Center(
@@ -306,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: fadedTextColor, size: 18),
           hintText: hint,
-          hintStyle: TextStyle(color: fadedTextColor.withOpacity(0.5), fontSize: 14),
+          hintStyle: TextStyle(color: fadedTextColor.withValues(alpha: 0.5), fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         ),

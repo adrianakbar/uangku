@@ -39,8 +39,8 @@ class AppColors {
   static LinearGradient primaryGradient(bool isDark) {
     return LinearGradient(
       colors: isDark 
-          ? [primaryDark, primaryDark.withOpacity(0.7)] 
-          : [primaryLight, primaryLight.withOpacity(0.7)],
+          ? [primaryDark, primaryDark.withValues(alpha: 0.7)] 
+          : [primaryLight, primaryLight.withValues(alpha: 0.7)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );

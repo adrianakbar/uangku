@@ -36,13 +36,13 @@ class GlassCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                (color ?? Colors.white).withOpacity(isDark ? 0.08 : 0.65),
-                (color ?? Colors.white).withOpacity(isDark ? 0.02 : 0.35),
+                (color ?? Colors.white).withValues(alpha: isDark ? 0.08 : 0.65),
+                (color ?? Colors.white).withValues(alpha: isDark ? 0.02 : 0.35),
               ],
             ),
             // Border kaca lebih tebal di tema terang untuk refleksi fisik yang baik
             border: Border.all(
-              color: Colors.white.withOpacity(isDark ? 0.12 : 0.45),
+              color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.45),
               width: 1.2,
             ),
             // Bayangan halus di tema terang agar terlihat melayang di atas orbs pastel
@@ -50,7 +50,7 @@ class GlassCard extends StatelessWidget {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),

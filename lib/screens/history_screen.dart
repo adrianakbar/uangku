@@ -36,6 +36,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     'Hiburan',
     'Shopping',
     'Tagihan',
+    'Olahraga',
     'Gaji',
     'Lainnya'
   ];
@@ -46,6 +47,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     'Hiburan': {'color': AppColors.secondary, 'icon': LucideIcons.play},
     'Shopping': {'color': AppColors.secondary, 'icon': LucideIcons.shopping_bag},
     'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
+    'Olahraga': {'color': AppColors.secondary, 'icon': LucideIcons.dumbbell},
     'Gaji': {'color': AppColors.secondary, 'icon': LucideIcons.arrow_up_right},
     'Lainnya': {'color': AppColors.secondary, 'icon': LucideIcons.ellipsis},
   };
@@ -167,11 +169,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: AlertDialog(
-            backgroundColor: isDark ? const Color(0xFF0E1122).withOpacity(0.85) : Colors.white.withOpacity(0.9),
+            backgroundColor: isDark ? const Color(0xFF0E1122).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
               side: BorderSide(
-                color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08),
+                color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
                 width: 1.5,
               ),
             ),
@@ -224,8 +226,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
-    final textInputColor = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03);
-    final textInputBorderColor = isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
+    final textInputColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03);
+    final textInputBorderColor = isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08);
 
     final filtered = _filteredTransactions;
     final totalItems = filtered.length;
@@ -299,7 +301,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF5252).withOpacity(0.12),
+                          color: const Color(0xFFFF5252).withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(LucideIcons.arrow_up_right, color: Color(0xFFFF5252), size: 16),
@@ -347,7 +349,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 decoration: InputDecoration(
                   prefixIcon: Icon(LucideIcons.search, color: subTextColor, size: 20),
                   hintText: 'Cari catatan riwayat...',
-                  hintStyle: TextStyle(color: subTextColor.withOpacity(0.5), fontSize: 14),
+                  hintStyle: TextStyle(color: subTextColor.withValues(alpha: 0.5), fontSize: 14),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 ),
@@ -440,9 +442,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                       ),
                       child: Icon(LucideIcons.search_x, color: Theme.of(context).colorScheme.primary, size: 30),
                     ),
@@ -511,7 +513,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: baseColor.withOpacity(0.12),
+                                  color: baseColor.withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(icon, color: baseColor, size: 20),
@@ -590,7 +592,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     // Previous Page Button
                     IconButton(
                       icon: const Icon(LucideIcons.chevron_left),
-                      color: _currentPage > 1 ? textColor : subTextColor.withOpacity(0.3),
+                      color: _currentPage > 1 ? textColor : subTextColor.withValues(alpha: 0.3),
                       onPressed: _currentPage > 1
                           ? () {
                               setState(() {
@@ -627,17 +629,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       : null,
                                   color: isCurrent
                                       ? null
-                                      : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03)),
+                                      : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isCurrent
                                         ? Colors.transparent
-                                        : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05)),
+                                        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
                                   ),
                                   boxShadow: isCurrent
                                       ? [
                                           BoxShadow(
-                                            color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           )
@@ -662,7 +664,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     // Next Page Button
                     IconButton(
                       icon: const Icon(LucideIcons.chevron_right),
-                      color: _currentPage < totalPages ? textColor : subTextColor.withOpacity(0.3),
+                      color: _currentPage < totalPages ? textColor : subTextColor.withValues(alpha: 0.3),
                       onPressed: _currentPage < totalPages
                           ? () {
                               setState(() {

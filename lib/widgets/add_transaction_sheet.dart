@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -91,6 +92,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     }
   }
 
+  String _formatAmount(String val) {
+    final clean = val.replaceAll(RegExp(r'\D'), '');
+    final reg = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    return clean.replaceAllMapped(reg, (Match m) => '.');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -98,9 +105,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final tx = widget.transaction!;
       final amount = tx['amount'];
       if (amount is double) {
-        _amountController.text = amount.toStringAsFixed(0);
+        _amountController.text = _formatAmount(amount.toStringAsFixed(0));
       } else if (amount != null) {
-        _amountController.text = amount.toString();
+        _amountController.text = _formatAmount(amount.toString());
       }
 
       final title = tx['title'] as String? ?? '';
@@ -128,6 +135,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     {'name': 'Hiburan', 'icon': LucideIcons.play, 'color': AppColors.tertiaryLight},
     {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': AppColors.primaryLight},
     {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': AppColors.secondary},
+    {'name': 'Olahraga', 'icon': LucideIcons.dumbbell, 'color': AppColors.tertiaryLight},
     {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': AppColors.tertiaryLight},
   ];
 
@@ -155,8 +163,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     final textColor = isDark ? AppColors.textDarkPrimary : AppColors.textLightPrimary;
     final subTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary;
     final fadedTextColor = isDark ? AppColors.textDarkTertiary : AppColors.textLightTertiary;
-    final inputBgColor = isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.03);
-    final inputBorderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
+    final inputBgColor = isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03);
+    final inputBorderColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.08);
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -175,14 +183,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             bottom: 24,
           ),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.bgDark.withOpacity(0.85) : AppColors.bgLight.withOpacity(0.92),
+            color: isDark ? AppColors.bgDark.withValues(alpha: 0.85) : AppColors.bgLight.withValues(alpha: 0.92),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(32),
               topRight: Radius.circular(32),
             ),
             border: Border(
               top: BorderSide(
-                color: isDark ? Colors.white.withOpacity(0.15) : Colors.black.withOpacity(0.08),
+                color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.08),
                 width: 1.5,
               ),
             ),
@@ -245,6 +253,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   child: TextField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      IndonesianCurrencyInputFormatter(),
+                    ],
                     style: TextStyle(
                       color: textColor,
                       fontSize: 28,
@@ -303,12 +314,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? iconColor.withOpacity(0.18)
+                              ? iconColor.withValues(alpha: 0.18)
                               : inputBgColor,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isSelected
-                                ? iconColor.withOpacity(0.6)
+                                ? iconColor.withValues(alpha: 0.6)
                                 : inputBorderColor,
                             width: isSelected ? 1.5 : 1,
                           ),
@@ -501,7 +512,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       return;
                     }
 
-                    final parsedAmount = double.tryParse(amountText.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+                    final parsedAmount = double.tryParse(amountText.replaceAll('.', '')) ?? 0.0;
                     if (parsedAmount <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Nominal harus lebih besar dari 0!')),
@@ -577,7 +588,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
@@ -606,5 +617,38 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       ),
     ),
   );
+  }
+}
+
+class IndonesianCurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final cleanText = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final reg = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    final formattedText = cleanText.replaceAllMapped(reg, (Match m) => '.');
+
+    int cursorPosition = newValue.selection.end;
+    int digitsBeforeCursor = newValue.text.substring(0, cursorPosition).replaceAll(RegExp(r'\D'), '').length;
+    
+    int newCursorPosition = 0;
+    int digitCount = 0;
+    while (newCursorPosition < formattedText.length && digitCount < digitsBeforeCursor) {
+      if (formattedText[newCursorPosition] != '.') {
+        digitCount++;
+      }
+      newCursorPosition++;
+    }
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: newCursorPosition),
+    );
   }
 }

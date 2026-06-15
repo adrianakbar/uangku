@@ -84,11 +84,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subTextColor = isDark ? Colors.white60 : const Color(0xFF475569);
     final inputBg = isDark
-        ? Colors.white.withOpacity(0.04)
-        : Colors.black.withOpacity(0.03);
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.03);
     final inputBorder = isDark
-        ? Colors.white.withOpacity(0.1)
-        : Colors.black.withOpacity(0.08);
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black.withValues(alpha: 0.08);
 
     return LiquidGlassBackground(
       child: Center(
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -210,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -271,8 +271,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 48,
                         decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : Colors.black.withOpacity(0.03),
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: inputBorder),
                         ),
@@ -385,7 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
           prefixIcon: Icon(icon, color: fadedTextColor, size: 18),
           hintText: hint,
           hintStyle: TextStyle(
-            color: fadedTextColor.withOpacity(0.5),
+            color: fadedTextColor.withValues(alpha: 0.5),
             fontSize: 14,
           ),
           border: InputBorder.none,

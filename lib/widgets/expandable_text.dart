@@ -62,7 +62,7 @@ class _ExpandableTextState extends State<ExpandableText> {
               Icon(
                 _isExpanded ? LucideIcons.chevron_up : LucideIcons.chevron_down,
                 size: 16,
-                color: widget.style.color?.withOpacity(0.5) ?? Colors.white30,
+                color: widget.style.color?.withValues(alpha: 0.5) ?? Colors.white30,
               ),
             ],
           ),
