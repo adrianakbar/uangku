@@ -23,6 +23,7 @@ import 'package:uangku/theme/design_system.dart';
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 final ValueNotifier<bool> biometricEnabledNotifier = ValueNotifier(false);
 final ValueNotifier<bool> notificationsEnabledNotifier = ValueNotifier(false);
+final ValueNotifier<bool> liquidBackgroundNotifier = ValueNotifier(true);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,6 +122,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     } else {
       themeNotifier.value = ThemeMode.system;
     }
+    
+    // 5. Pulihkan setelan latar belakang liquid
+    final liquidBgEnabled = await db.getSetting('liquid_background_enabled');
+    liquidBackgroundNotifier.value = liquidBgEnabled != 'false';
     
     // 5. Push data terbaru ke widget Android (jika sudah login)
     WidgetService().updateWidget();

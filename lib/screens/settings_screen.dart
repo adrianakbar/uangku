@@ -633,6 +633,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
+          const SizedBox(height: 12),
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: liquidBackgroundNotifier,
+              builder: (context, enabled, _) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.sparkles, color: Theme.of(context).colorScheme.secondary, size: 22),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Background Liquid Glass',
+                                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  'Efek blur & orbs animasi (matikan jika lag)',
+                                  style: TextStyle(color: subTextColor, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Switch(
+                      value: enabled,
+                      activeThumbColor: Theme.of(context).colorScheme.secondary,
+                      onChanged: (value) async {
+                        liquidBackgroundNotifier.value = value;
+                        await DatabaseService().saveSetting('liquid_background_enabled', value ? 'true' : 'false');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(value
+                                  ? 'Background liquid glass diaktifkan!'
+                                  : 'Background liquid glass dimatikan (Mode Performa Tinggi)!'),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
           const SizedBox(height: 24),
 
           // 4. Cadangan Data & Database Section
