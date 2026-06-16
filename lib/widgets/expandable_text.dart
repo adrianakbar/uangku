@@ -22,6 +22,15 @@ class _ExpandableTextState extends State<ExpandableText> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.text.length <= 25) {
+      return Text(
+        widget.text,
+        style: widget.style,
+        maxLines: widget.maxLines,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Gunakan TextPainter untuk mendeteksi apakah teks melebihi maxLines

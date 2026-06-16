@@ -516,6 +516,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         onTap: () => _showEditTransactionForm(tx),
                         child: GlassCard(
                           borderRadius: 20,
+                          blur: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           child: Row(
                             children: [

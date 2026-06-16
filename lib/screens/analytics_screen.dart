@@ -267,6 +267,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
                 return GlassCard(
                   borderRadius: 20,
+                  blur: 0,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [

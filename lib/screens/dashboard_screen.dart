@@ -1067,6 +1067,7 @@ class _RecentTransactionsList extends StatelessWidget {
             onTap: onTransactionTap != null ? () => onTransactionTap!(item) : null,
             child: GlassCard(
               borderRadius: 20,
+              blur: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [

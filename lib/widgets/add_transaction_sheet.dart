@@ -132,16 +132,16 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   final List<Map<String, dynamic>> _categories = [
     {'name': 'F&B', 'icon': LucideIcons.coffee, 'color': AppColors.primaryLight},
     {'name': 'Transport', 'icon': LucideIcons.car, 'color': AppColors.secondary},
-    {'name': 'Hiburan', 'icon': LucideIcons.play, 'color': AppColors.tertiaryLight},
-    {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': AppColors.primaryLight},
-    {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': AppColors.secondary},
-    {'name': 'Olahraga', 'icon': LucideIcons.dumbbell, 'color': AppColors.tertiaryLight},
-    {'name': 'Kesehatan', 'icon': LucideIcons.heart, 'color': const Color(0xFFE57373)},
-    {'name': 'Edukasi', 'icon': LucideIcons.graduation_cap, 'color': const Color(0xFF64B5F6)},
-    {'name': 'Top Up', 'icon': LucideIcons.wallet_cards, 'color': const Color(0xFF81C784)},
-    {'name': 'Sosial', 'icon': LucideIcons.users, 'color': const Color(0xFFFFB74D)},
-    {'name': 'Jasa', 'icon': LucideIcons.wrench, 'color': const Color(0xFFBA68C8)},
-    {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': AppColors.tertiaryLight},
+    {'name': 'Hiburan', 'icon': LucideIcons.play, 'color': AppColors.primaryLight},
+    {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': AppColors.secondary},
+    {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': AppColors.primaryLight},
+    {'name': 'Olahraga', 'icon': LucideIcons.dumbbell, 'color': AppColors.secondary},
+    {'name': 'Kesehatan', 'icon': LucideIcons.heart, 'color': AppColors.primaryLight},
+    {'name': 'Edukasi', 'icon': LucideIcons.graduation_cap, 'color': AppColors.secondary},
+    {'name': 'Top Up', 'icon': LucideIcons.wallet_cards, 'color': AppColors.primaryLight},
+    {'name': 'Sosial', 'icon': LucideIcons.users, 'color': AppColors.secondary},
+    {'name': 'Jasa', 'icon': LucideIcons.wrench, 'color': AppColors.primaryLight},
+    {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': AppColors.secondary},
   ];
 
   final List<String> _wallets = [

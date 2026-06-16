@@ -23,42 +23,48 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(borderRadius),
-            // Pantulan cahaya kaca menggunakan gradien linier transparan putih (lebih tebal di tema terang)
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                (color ?? Colors.white).withValues(alpha: isDark ? 0.08 : 0.65),
-                (color ?? Colors.white).withValues(alpha: isDark ? 0.02 : 0.35),
-              ],
-            ),
-            // Border kaca lebih tebal di tema terang untuk refleksi fisik yang baik
-            border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.45),
-              width: 1.2,
-            ),
-            // Bayangan halus di tema terang agar terlihat melayang di atas orbs pastel
-            boxShadow: isDark
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-          ),
-          child: child,
+    final container = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        // Pantulan cahaya kaca menggunakan gradien linier transparan putih (lebih tebal di tema terang)
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            (color ?? Colors.white).withValues(alpha: isDark ? 0.08 : 0.65),
+            (color ?? Colors.white).withValues(alpha: isDark ? 0.02 : 0.35),
+          ],
         ),
+        // Border kaca lebih tebal di tema terang untuk refleksi fisik yang baik
+        border: Border.all(
+          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.45),
+          width: 1.2,
+        ),
+        // Bayangan halus di tema terang agar terlihat melayang di atas orbs pastel
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
       ),
+      child: child,
     );
+
+    if (blur > 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: container,
+        ),
+      );
+    }
+
+    return container;
   }
 }
