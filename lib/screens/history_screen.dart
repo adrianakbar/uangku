@@ -37,6 +37,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     'Shopping',
     'Tagihan',
     'Olahraga',
+    'Kesehatan',
+    'Edukasi',
+    'Top Up',
+    'Sosial',
+    'Jasa',
     'Gaji',
     'Lainnya'
   ];
@@ -48,6 +53,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     'Shopping': {'color': AppColors.secondary, 'icon': LucideIcons.shopping_bag},
     'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
     'Olahraga': {'color': AppColors.secondary, 'icon': LucideIcons.dumbbell},
+    'Kesehatan': {'color': AppColors.secondary, 'icon': LucideIcons.heart},
+    'Edukasi': {'color': AppColors.secondary, 'icon': LucideIcons.graduation_cap},
+    'Top Up': {'color': AppColors.secondary, 'icon': LucideIcons.wallet_cards},
+    'Sosial': {'color': AppColors.secondary, 'icon': LucideIcons.users},
+    'Jasa': {'color': AppColors.secondary, 'icon': LucideIcons.wrench},
     'Gaji': {'color': AppColors.secondary, 'icon': LucideIcons.arrow_up_right},
     'Lainnya': {'color': AppColors.secondary, 'icon': LucideIcons.ellipsis},
   };

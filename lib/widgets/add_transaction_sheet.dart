@@ -136,6 +136,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     {'name': 'Shopping', 'icon': LucideIcons.shopping_bag, 'color': AppColors.primaryLight},
     {'name': 'Tagihan', 'icon': LucideIcons.receipt, 'color': AppColors.secondary},
     {'name': 'Olahraga', 'icon': LucideIcons.dumbbell, 'color': AppColors.tertiaryLight},
+    {'name': 'Kesehatan', 'icon': LucideIcons.heart, 'color': const Color(0xFFE57373)},
+    {'name': 'Edukasi', 'icon': LucideIcons.graduation_cap, 'color': const Color(0xFF64B5F6)},
+    {'name': 'Top Up', 'icon': LucideIcons.wallet_cards, 'color': const Color(0xFF81C784)},
+    {'name': 'Sosial', 'icon': LucideIcons.users, 'color': const Color(0xFFFFB74D)},
+    {'name': 'Jasa', 'icon': LucideIcons.wrench, 'color': const Color(0xFFBA68C8)},
     {'name': 'Lainnya', 'icon': LucideIcons.ellipsis, 'color': AppColors.tertiaryLight},
   ];
 

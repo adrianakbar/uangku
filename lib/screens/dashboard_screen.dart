@@ -924,6 +924,16 @@ class _RecentTransactionsList extends StatelessWidget {
         return {'icon': LucideIcons.receipt, 'color': AppColors.secondary};
       case 'Olahraga':
         return {'icon': LucideIcons.dumbbell, 'color': AppColors.tertiaryLight};
+      case 'Kesehatan':
+        return {'icon': LucideIcons.heart, 'color': const Color(0xFFE57373)};
+      case 'Edukasi':
+        return {'icon': LucideIcons.graduation_cap, 'color': const Color(0xFF64B5F6)};
+      case 'Top Up':
+        return {'icon': LucideIcons.wallet_cards, 'color': const Color(0xFF81C784)};
+      case 'Sosial':
+        return {'icon': LucideIcons.users, 'color': const Color(0xFFFFB74D)};
+      case 'Jasa':
+        return {'icon': LucideIcons.wrench, 'color': const Color(0xFFBA68C8)};
       case 'Gaji':
         return {'icon': LucideIcons.banknote, 'color': AppColors.primaryLight};
       default:

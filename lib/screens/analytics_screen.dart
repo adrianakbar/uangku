@@ -29,6 +29,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     'Shopping': {'color': AppColors.primaryLight, 'icon': LucideIcons.shopping_bag},
     'Tagihan': {'color': AppColors.secondary, 'icon': LucideIcons.receipt},
     'Olahraga': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.dumbbell},
+    'Kesehatan': {'color': const Color(0xFFE57373), 'icon': LucideIcons.heart},
+    'Edukasi': {'color': const Color(0xFF64B5F6), 'icon': LucideIcons.graduation_cap},
+    'Top Up': {'color': const Color(0xFF81C784), 'icon': LucideIcons.wallet_cards},
+    'Sosial': {'color': const Color(0xFFFFB74D), 'icon': LucideIcons.users},
+    'Jasa': {'color': const Color(0xFFBA68C8), 'icon': LucideIcons.wrench},
     'Lainnya': {'color': AppColors.tertiaryLight, 'icon': LucideIcons.ellipsis},
   };
 
